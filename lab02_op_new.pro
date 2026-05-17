@@ -5,6 +5,8 @@ CONFIG += c++17
 
 SOURCES += \
     context_state.cpp \
+    entrypoint.cpp \
+    graphdrawer.cpp \
     iterator.cpp \
     list.cpp \
     load_data.cpp \
@@ -17,6 +19,8 @@ HEADERS += \
     appcontext.h \
     context_state.h \
     data.h \
+    entrypoint.h \
+    graphdrawer.h \
     iterator.h \
     list.h \
     load_data.h \

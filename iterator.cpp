@@ -1,7 +1,7 @@
 #include "iterator.h"
 #include <stdlib.h>
 
-Iterator create(List* list) {
+Iterator iter_create(List* list) {
     Iterator it;
     it.current = NULL;
     if (list != NULL) {
@@ -10,17 +10,17 @@ Iterator create(List* list) {
     return it;
 }
 
-int has_next(Iterator* it) {
+int iter_has_next(Iterator* it) {
     return (it != NULL && it->current != NULL);
 }
 
-void next(Iterator* it) {
+void iter_next(Iterator* it) {
     if (it != NULL && it->current != NULL) {
         it->current = it->current->next;
     }
 }
 
-DataRow* get(Iterator* it) {
+DataRow* iter_get(Iterator* it) {
     DataRow* result = NULL;
     if (it != NULL && it->current != NULL) {
         result = &(it->current->data);

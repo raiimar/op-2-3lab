@@ -16,6 +16,7 @@ typedef struct {
 
 enum DataColumnNumbers {
     COLUMN_YEAR = 1,
+    COLUMN_REGION = 2,
     COLUMN_NATURAL_POPULATION_GROWTH = 3,
     COLUMN_BIRTH_RATE = 4,
     COLUMN_DEATH_RATE = 5,
