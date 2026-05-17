@@ -3,7 +3,6 @@
 #include <QPainterPath>
 #include <cmath>
 
-// ---------- вспомогательные функции отображения координат ----------
 static int map_to_x(int year, int yearMin, int yearMax, int width) {
     double ratio = (yearMax > yearMin) ? (double)(year - yearMin) / (yearMax - yearMin) : 0.0;
     return qRound(ratio * (width - 1));

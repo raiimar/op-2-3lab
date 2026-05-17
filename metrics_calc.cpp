@@ -27,10 +27,7 @@ void logic_calculate_metrics(AppContext* context, const char* region, int column
     YearRange years = {startYear, endYear};
     FilteredSeries series = {NULL, NULL, 0};
 
-    if (context->dataList == NULL) {
-        set_status_message(context, ERROR_INVALID_DATA, "No data loaded.");
-        success = 0;
-    } else if (startYear >= endYear) {
+    if (startYear >= endYear) {
         set_status_message(context, ERROR_INVALID_PARAMS, "Invalid year range.");
         success = 0;
     }
@@ -40,37 +37,20 @@ void logic_calculate_metrics(AppContext* context, const char* region, int column
         clear_plot_buffers(context);
 
         filteredList = filter_to_list(context->dataList, region, years);
-        if (filteredList == NULL) {
-            set_status_message(context, ERROR_EMPTY_RESULT, "No data for given region");
-            success = 0;
-        }
-    }
+        sort_list_by_column(filteredList, COLUMN_YEAR);
+        list_to_series(filteredList, columnIndex, &series);
 
-    if (success) {
+        context->plot.years = series.years;
+        context->plot.values = series.values;
+        context->plot.count = series.count;
+        context->plot.columnIndex = columnIndex;
+        strncpy(context->plot.region, region, REGION_NAME_LENGTH - 1);
+        context->plot.region[REGION_NAME_LENGTH - 1] = '\0';
+        context->plot.yearMin = series.years[0];
+        context->plot.yearMax = series.years[series.count - 1];
+
         sort_list_by_column(filteredList, columnIndex);
-        calc_metrics(filteredList, columnIndex,
-                     &context->metrics.min,
-                     &context->metrics.max,
-                     &context->metrics.median);
-
-        if (!list_to_series(filteredList, columnIndex, &series)) {
-            set_status_message(context, ERROR_INVALID_DATA, "Failed to extract series for plot.");
-            success = 0;
-        } else {
-            context->plot.years = series.years;
-            context->plot.values = series.values;
-            context->plot.count = series.count;
-            context->plot.columnIndex = columnIndex;
-            strncpy(context->plot.region, region, REGION_NAME_LENGTH - 1);
-            context->plot.region[REGION_NAME_LENGTH - 1] = '\0';
-            if (series.count > 0) {
-                context->plot.yearMin = series.years[0];
-                context->plot.yearMax = series.years[series.count - 1];
-            } else {
-                context->plot.yearMin = 0;
-                context->plot.yearMax = 0;
-            }
-        }
+        calc_metrics(filteredList, columnIndex, &context->metrics.min, &context->metrics.max, &context->metrics.median);
     }
 
     if (filteredList != NULL) {
