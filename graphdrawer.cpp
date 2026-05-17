@@ -3,60 +3,46 @@
 #include <QPainterPath>
 #include <cmath>
 
-static int map_to_x(int year, int yearMin, int yearMax, int width) {
-    double ratio = (yearMax > yearMin) ? (double)(year - yearMin) / (yearMax - yearMin) : 0.0;
-    return qRound(ratio * (width - 1));
+static int map_to_x(int year, const DrawParams& dp) {
+    double ratio = (double)(year - dp.yearMin) / (dp.yearMax - dp.yearMin);
+    return qRound(ratio * (dp.draw_w - 1));
 }
 
-static int map_to_y(double value, double minVal, double maxVal, int height) {
-    double range = maxVal - minVal;
-    double ratio = (range > 0.0) ? (value - minVal) / range : 0.0;
-    return (height - 1) - qRound(ratio * (height - 1));
+static int map_to_y(double value, const DrawParams& dp) {
+    double ratio = (value - dp.minVal) / (dp.maxVal - dp.minVal);
+    return (dp.draw_h - 1) - qRound(ratio * (dp.draw_h - 1));
 }
 
-// ---------- отрисовка пустой области (нет данных) ----------
-static void draw_empty_graph(QPainter* painter, const QSize& size) {
-    painter->fillRect(0, 0, size.width(), size.height(), COLOR_BACKGROUND);
+static void draw_axes(QPainter* painter, int draw_w, int draw_h) {
     painter->setPen(QPen(COLOR_FRAME, THIN_LINE));
-    painter->drawRect(0, 0, size.width() - 1, size.height() - 1);
-}
-
-// ---------- отрисовка осей и подписей ----------
-static void draw_axes(QPainter* painter, int draw_w, int draw_h, int total_w, int total_h) {
-    painter->setPen(QPen(COLOR_FRAME, THIN_LINE));
-    painter->drawLine(0, draw_h - 1, draw_w - 1, draw_h - 1);  // ось X
-    painter->drawLine(0, 0, 0, draw_h - 1);                    // ось Y
+    painter->drawLine(0, draw_h - 1, draw_w - 1, draw_h - 1);
+    painter->drawLine(0, 0, 0, draw_h - 1);
 
     painter->setPen(COLOR_TEXT);
-    painter->drawText(draw_w / 2 + INDENT, draw_h + 2 * INDENT, "Year");
-    painter->drawText(INDENT, SIDE_PADDING_SMALL - INDENT, "Value");
+    painter->drawText(draw_w / 2 - INDENT, draw_h + 5 * INDENT, "Year");
+    painter->drawText(-5 * INDENT, -INDENT, "Value");
 }
 
-// ---------- отрисовка сетки и числовых меток на осях ----------
-static void draw_grid_and_ticks(QPainter* painter, int draw_w, int draw_h,
-                                int yearMin, int yearMax,
-                                double minVal, double maxVal) {
+static void draw_grid_and_ticks(QPainter* painter, const DrawParams& dp) {
     painter->setPen(QPen(COLOR_FRAME, THIN_LINE));
     QFontMetrics fm(painter->font());
 
-    // Вертикальные линии (по годам)
     for (int i = 0; i <= GRID_STEPS; ++i) {
-        int year = yearMin + i * (yearMax - yearMin) / GRID_STEPS;
-        int x = map_to_x(year, yearMin, yearMax, draw_w);
-        painter->drawLine(x, 0, x, draw_h - 1);                      // линия сетки
-        painter->drawLine(x, draw_h - 1, x, draw_h - 1 + AXIS_TICK_LENGTH); // засечка
+        int year = dp.yearMin + i * (dp.yearMax - dp.yearMin) / GRID_STEPS;
+        int x = map_to_x(year, dp);
+        painter->drawLine(x, 0, x, dp.draw_h - 1);
+        painter->drawLine(x, dp.draw_h - 1, x, dp.draw_h - 1 + AXIS_TICK_LENGTH);
 
         QString label = QString::number(year);
         int label_w = fm.horizontalAdvance(label);
-        painter->drawText(x - label_w / 2, draw_h + AXIS_TICK_LENGTH + LABEL_OFFSET, label);
+        painter->drawText(x - label_w / 2, dp.draw_h + AXIS_TICK_LENGTH + 4*LABEL_OFFSET, label);
     }
 
-    // Горизонтальные линии (по значениям)
     for (int i = 0; i <= GRID_STEPS; ++i) {
-        double val = minVal + i * (maxVal - minVal) / GRID_STEPS;
-        int y = map_to_y(val, minVal, maxVal, draw_h);
-        painter->drawLine(0, y, draw_w - 1, y);                      // линия сетки
-        painter->drawLine(0, y, -AXIS_TICK_LENGTH, y);               // засечка
+        double val = dp.minVal + i * (dp.maxVal - dp.minVal) / GRID_STEPS;
+        int y = map_to_y(val, dp);
+        painter->drawLine(0, y, dp.draw_w - 1, y);
+        painter->drawLine(0, y, -AXIS_TICK_LENGTH, y);
 
         QString label = QString::number(val, 'f', 2);
         int label_w = fm.horizontalAdvance(label);
@@ -64,94 +50,64 @@ static void draw_grid_and_ticks(QPainter* painter, int draw_w, int draw_h,
     }
 }
 
-// ---------- отрисовка линии графика и точек ----------
-static void draw_data_line(QPainter* painter, const int* years, const double* values, int count,
-                           int yearMin, int yearMax, double minVal, double maxVal,
-                           int draw_w, int draw_h) {
-    if (count < 1) return;
-
+static void draw_data_line(QPainter* painter, const int* years, const double* values, int count, const DrawParams& dp) {
     QPainterPath path;
-    int firstX = map_to_x(years[0], yearMin, yearMax, draw_w);
-    int firstY = map_to_y(values[0], minVal, maxVal, draw_h);
-    path.moveTo(firstX, firstY);
-
+    path.moveTo(map_to_x(years[0], dp), map_to_y(values[0], dp));
     for (int i = 1; i < count; ++i) {
-        int x = map_to_x(years[i], yearMin, yearMax, draw_w);
-        int y = map_to_y(values[i], minVal, maxVal, draw_h);
-        path.lineTo(x, y);
+        path.lineTo(map_to_x(years[i], dp), map_to_y(values[i], dp));
     }
-
     painter->setPen(QPen(COLOR_LINE, THICK_LINE));
     painter->drawPath(path);
 
-    // Рисуем точки
     painter->setBrush(COLOR_LINE);
     painter->setPen(Qt::NoPen);
     for (int i = 0; i < count; ++i) {
-        int x = map_to_x(years[i], yearMin, yearMax, draw_w);
-        int y = map_to_y(values[i], minVal, maxVal, draw_h);
-        painter->drawEllipse(QPoint(x, y), POINT_RADIUS, POINT_RADIUS);
+        painter->drawEllipse(QPoint(map_to_x(years[i], dp), map_to_y(values[i], dp)), POINT_RADIUS, POINT_RADIUS);
     }
 }
 
-// ---------- отрисовка горизонтальных линий для min / max / median ----------
-static void draw_metric_markers(QPainter* painter, double minVal, double maxVal, double medianVal,
-                                int yearMin, int yearMax, double dataMin, double dataMax,
-                                int draw_w, int draw_h) {
+static void draw_metric_markers(QPainter* painter, double minVal, double maxVal, double medianVal, const DrawParams& dp) {
     QFontMetrics fm(painter->font());
     painter->setPen(QPen(COLOR_MAX, THICK_LINE));
-    int yMax = map_to_y(maxVal, dataMin, dataMax, draw_h);
-    painter->drawLine(0, yMax, draw_w - 1, yMax);
+    int yMax = map_to_y(maxVal, dp);
+    painter->drawLine(0, yMax, dp.draw_w - 1, yMax);
     QString maxStr = QString("Max: %1").arg(maxVal, 0, 'f', 3);
-    painter->drawText(draw_w - fm.horizontalAdvance(maxStr) - LABEL_OFFSET,
-                      yMax - LABEL_OFFSET, maxStr);
+    painter->drawText(dp.draw_w - fm.horizontalAdvance(maxStr) - LABEL_OFFSET, yMax - LABEL_OFFSET, maxStr);
 
     painter->setPen(QPen(COLOR_MIN, THICK_LINE));
-    int yMin = map_to_y(minVal, dataMin, dataMax, draw_h);
-    painter->drawLine(0, yMin, draw_w - 1, yMin);
+    int yMin = map_to_y(minVal, dp);
+    painter->drawLine(0, yMin, dp.draw_w - 1, yMin);
     QString minStr = QString("Min: %1").arg(minVal, 0, 'f', 3);
-    painter->drawText(draw_w - fm.horizontalAdvance(minStr) - LABEL_OFFSET,
-                      yMin - LABEL_OFFSET, minStr);
+    painter->drawText(dp.draw_w - fm.horizontalAdvance(minStr) - LABEL_OFFSET, yMin - LABEL_OFFSET, minStr);
 
     painter->setPen(QPen(COLOR_MEDIAN, THICK_LINE));
-    int yMed = map_to_y(medianVal, dataMin, dataMax, draw_h);
-    painter->drawLine(0, yMed, draw_w - 1, yMed);
+    int yMed = map_to_y(medianVal, dp);
+    painter->drawLine(0, yMed, dp.draw_w - 1, yMed);
     QString medStr = QString("Median: %1").arg(medianVal, 0, 'f', 3);
-    painter->drawText(draw_w - fm.horizontalAdvance(medStr) - LABEL_OFFSET,
-                      yMed - LABEL_OFFSET, medStr);
+    painter->drawText(dp.draw_w - fm.horizontalAdvance(medStr) - LABEL_OFFSET, yMed - LABEL_OFFSET, medStr);
 }
 
-// ---------- главная функция отрисовки (один return) ----------
 QPixmap draw_graph(const GraphData& data) {
     QPixmap pixmap(data.size);
     pixmap.fill(COLOR_BACKGROUND);
     QPainter painter(&pixmap);
+    int draw_x = SIDE_PADDING_BIG;
+    int draw_y = SIDE_PADDING_SMALL;
 
-    if (data.count == 0) {
-        draw_empty_graph(&painter, data.size);
-    } else {
-        int draw_x = SIDE_PADDING_BIG;
-        int draw_y = SIDE_PADDING_SMALL;
-        int draw_w = data.size.width() - SIDE_PADDING_BIG - SIDE_PADDING_SMALL;
-        int draw_h = data.size.height() - SIDE_PADDING_BIG - SIDE_PADDING_SMALL;
+    DrawParams dp;
+    dp.draw_w = data.size.width() - SIDE_PADDING_BIG - SIDE_PADDING_SMALL;
+    dp.draw_h = data.size.height() - SIDE_PADDING_BIG - SIDE_PADDING_SMALL;
+    dp.yearMin = data.yearMin;
+    dp.yearMax = data.yearMax;
+    dp.minVal = data.minValue;
+    dp.maxVal = data.maxValue;
 
-        painter.save();
-        painter.translate(draw_x, draw_y);
+    painter.translate(draw_x, draw_y);
 
-        draw_axes(&painter, draw_w, draw_h, data.size.width(), data.size.height());
-        draw_grid_and_ticks(&painter, draw_w, draw_h,
-                            data.yearMin, data.yearMax,
-                            data.minValue, data.maxValue);
-        draw_data_line(&painter, data.years, data.values, data.count,
-                       data.yearMin, data.yearMax, data.minValue, data.maxValue,
-                       draw_w, draw_h);
-        draw_metric_markers(&painter,
-                            data.minValue, data.maxValue, data.medianValue,
-                            data.yearMin, data.yearMax, data.minValue, data.maxValue,
-                            draw_w, draw_h);
-
-        painter.restore();
-    }
+    draw_axes(&painter, dp.draw_w, dp.draw_h);
+    draw_grid_and_ticks(&painter, dp);
+    draw_data_line(&painter, data.years, data.values, data.count, dp);
+    draw_metric_markers(&painter, data.minValue, data.maxValue, data.medianValue, dp);
 
     return pixmap;
 }

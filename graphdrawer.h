@@ -8,7 +8,7 @@ const int SIDE_PADDING_SMALL = 25;
 const int SIDE_PADDING_BIG = 70;
 
 const int POINT_RADIUS = 3;
-const int INDENT = 15;
+const int INDENT = 10;
 const int TEXT_OFFSET = 6;
 const int THIN_LINE = 1;
 const int THICK_LINE = 2;
@@ -34,6 +34,16 @@ struct GraphData {
     int yearMin;
     int yearMax;
     QSize size;
+};
+
+
+struct DrawParams {
+    int draw_w;
+    int draw_h;
+    int yearMin;
+    int yearMax;
+    double minVal;
+    double maxVal;
 };
 
 QPixmap draw_graph(const GraphData& data);

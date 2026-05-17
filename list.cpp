@@ -141,9 +141,7 @@ int list_to_series(List* list, int columnIndex, FilteredSeries* out) {
 }
 
 void sort_list_by_column(List* list, int columnIndex) {
-    if (list == NULL || list->head == NULL) {
-        return;
-    } /////////не нрав
+
 
     Node* sorted = NULL;
     Node* current = list->head;

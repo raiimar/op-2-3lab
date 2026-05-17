@@ -196,9 +196,6 @@ void MainWindow::refresh_selectors() {
 
 void MainWindow::fill_table_by_region(const QString& region) {
     ui->tableWidgetData->setRowCount(0);
-    if (context.dataList == nullptr) {
-        return;
-    }
 
     int row = 0;
     Iterator it = iter_create(context.dataList);

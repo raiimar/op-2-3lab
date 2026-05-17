@@ -14,9 +14,6 @@ void reset_plot_fields(AppContext* context) {
 }
 
 void init_context(AppContext* context) {
-    if (context == NULL) {
-        return;
-    }
     context->dataList = list_create();
     context->fileStats.totalRows = 0;
     context->fileStats.validRows = 0;
@@ -26,9 +23,6 @@ void init_context(AppContext* context) {
 }
 
 void clear_plot_buffers(AppContext* context) {
-    if (context == NULL) {
-        return;
-    }
     if (context->plot.years != NULL) {
         free(context->plot.years);
     }
@@ -39,18 +33,12 @@ void clear_plot_buffers(AppContext* context) {
 }
 
 void reset_metrics(AppContext* context) {
-    if (context == NULL) {
-        return;
-    }
     context->metrics.min = 0.0;
     context->metrics.max = 0.0;
     context->metrics.median = 0.0;
 }
 
 void clear_context_data(AppContext* context) {
-    if (context == NULL) {
-        return;
-    }
     if (context->dataList != NULL) {
         list_clear(context->dataList);
         context->dataList = NULL;
@@ -62,11 +50,7 @@ void clear_context_data(AppContext* context) {
     set_status_message(context, STATUS_OK, "");
 }
 
-void set_status_message(AppContext* context, Status status, const char* message)
-{
-    if (context == NULL || message == NULL) {
-        return;
-    }
+void set_status_message(AppContext* context, Status status, const char* message) {
     context->error.code = status;
     strncpy(context->error.message, message, ERROR_MESSAGE_LENGTH - 1);
     context->error.message[ERROR_MESSAGE_LENGTH - 1] = '\0';
