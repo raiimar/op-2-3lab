@@ -7,7 +7,7 @@ typedef struct {
     Node* current;
 } Iterator;
 
-Iterator iter_create(List* list);
+Iterator iter_create(List* list); //
 int iter_has_next(Iterator* it);
 void iter_next(Iterator* it);
 DataRow* iter_get(Iterator* it);

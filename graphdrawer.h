@@ -3,18 +3,24 @@
 
 #include <QPixmap>
 #include <QSize>
+#include <QPainter>
 
-const int SIDE_PADDING_SMALL = 25;
-const int SIDE_PADDING_BIG = 70;
+enum DrawingConstants {
+    SIDE_PADDING_SMALL = 25,
+    SIDE_PADDING_BIG = 70,
+    POINT_RADIUS = 3,
+    THIN_LINE = 1,
+    THICK_LINE = 2,
+    GRID_STEPS = 5,
+    AXIS_TICK_LENGTH = 5,
+    BIG_INDENT = 50,
+    SMALL_INDENT = 5,
+    Y_PADDING_RATIO = 1
+};
 
-const int POINT_RADIUS = 3;
-const int INDENT = 10;
-const int TEXT_OFFSET = 6;
-const int THIN_LINE = 1;
-const int THICK_LINE = 2;
-const int GRID_STEPS = 5;          // количество линий сетки
-const int AXIS_TICK_LENGTH = 5;    // длина засечек на осях
-const int LABEL_OFFSET = 5;        // отступ подписей от осей
+struct Colors {
+
+};
 
 const QColor COLOR_BACKGROUND = QColor("#15121d");
 const QColor COLOR_FRAME = QColor("#5d3d91");
@@ -25,22 +31,22 @@ const QColor COLOR_MEDIAN = QColor("#FFFF00");
 const QColor COLOR_MIN = QColor("#3399FF");
 
 struct GraphData {
-    const int* years;
-    const double* values;
-    int count;
-    double minValue;
-    double maxValue;
-    double medianValue;
+    const int* years; //
+    const double* values;//
+    int count;//
+    double minValue;//
+    double maxValue;//
+    double medianValue;//
     int yearMin;
     int yearMax;
     QSize size;
 };
 
-
-struct DrawParams {
+struct DrawContext {
+    QPainter* painter;
     int draw_w;
     int draw_h;
-    int yearMin;
+    int yearMin; //
     int yearMax;
     double minVal;
     double maxVal;

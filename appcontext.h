@@ -8,9 +8,9 @@
 #define ERROR_MESSAGE_LENGTH 256
 
 typedef struct {
-    int totalRows;
-    int validRows;
-} FileStats;
+    int total;
+    int valid;
+} Rows;
 
 typedef struct {
     double min;
@@ -19,10 +19,10 @@ typedef struct {
 } MetricsResult;
 
 typedef struct {
-    int* years;
-    double* values;
-    int count;
-    int columnIndex;
+    int* years; //
+    double* values; //
+    int count; //
+    int columnIndex; //
     char region[REGION_NAME_LENGTH];
     int yearMin;
     int yearMax;
@@ -31,11 +31,11 @@ typedef struct {
 typedef struct {
     Status code;
     char message[ERROR_MESSAGE_LENGTH];
-} ErrorInfo;
+} ErrorInfo; //
 
 typedef struct AppContext {
     List* dataList;
-    FileStats fileStats;
+    Rows rows;
     MetricsResult metrics;
     PlotData plot;
     ErrorInfo error;

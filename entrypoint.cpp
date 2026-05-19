@@ -12,7 +12,7 @@ void doOperation(Operation operation, AppContext* context, AppParams* params) {
         load_data(context, params->filePath);
         break;
     case OPERATION_CALCULATE_METRICS:
-        logic_calculate_metrics(context, params->region, params->columnIndex, params->startYear, params->endYear);
+        logic_calculate_metrics(context, params->region, params->columnIndex, params->startYear, params->endYear); //
         break;
     case OPERATION_CLEAR_DATA:
         clear_context_data(context);

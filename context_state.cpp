@@ -15,8 +15,8 @@ void reset_plot_fields(AppContext* context) {
 
 void init_context(AppContext* context) {
     context->dataList = list_create();
-    context->fileStats.totalRows = 0;
-    context->fileStats.validRows = 0;
+    context->rows.total = 0;
+    context->rows.valid = 0;
     reset_metrics(context);
     set_status_message(context, STATUS_OK, "");
     reset_plot_fields(context);
@@ -45,8 +45,8 @@ void clear_context_data(AppContext* context) {
     }
     clear_plot_buffers(context);
     reset_metrics(context);
-    context->fileStats.totalRows = 0;
-    context->fileStats.validRows = 0;
+    context->rows.total = 0;
+    context->rows.valid = 0;
     set_status_message(context, STATUS_OK, "");
 }
 

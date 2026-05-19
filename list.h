@@ -4,7 +4,7 @@
 #include "data.h"
 
 typedef struct Node {
-    DataRow data;
+    DataRow data; //
     struct Node* next;
     struct Node* prev;
 } Node;
@@ -15,12 +15,12 @@ typedef struct {
     int size;
 } List;
 
-typedef struct {
+typedef struct { //
     int start;
     int end;
 } YearRange;
 
-typedef struct {
+typedef struct { //
     int* years;
     double* values;
     int count;

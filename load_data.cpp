@@ -13,10 +13,10 @@ static void process_lines(AppContext* context, FILE* file) {
     char buffer[MAX_LINE_LENGTH];
     while (fgets(buffer, sizeof(buffer), file) != NULL) {
         DataRow record;
-        context->fileStats.totalRows++;
+        context->rows.total++;
         if (parse_demography_line(buffer, &record)) {
             list_push_back(context->dataList, record);
-            context->fileStats.validRows++;
+            context->rows.valid++;
         }
     }
 }

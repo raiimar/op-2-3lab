@@ -27,6 +27,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void resizeEvent(QResizeEvent* event) override;
+    void update_graph_display();
     void on_buttonSelectFile_clicked();
     void on_buttonLoadData_clicked();
     void on_buttonCalculateAndDraw_clicked();

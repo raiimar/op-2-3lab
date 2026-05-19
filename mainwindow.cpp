@@ -43,6 +43,29 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
+void MainWindow::resizeEvent(QResizeEvent* event) {
+    QMainWindow::resizeEvent(event);
+    if (context.plot.count > 0) {
+        update_graph_display();
+    }
+}
+
+void MainWindow::update_graph_display() {
+    GraphData graphData;
+    graphData.years = context.plot.years;
+    graphData.values = context.plot.values;
+    graphData.count = context.plot.count;
+    graphData.minValue = context.metrics.min;
+    graphData.maxValue = context.metrics.max;
+    graphData.medianValue = context.metrics.median;
+    graphData.yearMin = context.plot.yearMin;
+    graphData.yearMax = context.plot.yearMax;
+    graphData.size = ui->graphLabel->size();
+
+    QPixmap pix = draw_graph(graphData);
+    ui->graphLabel->setPixmap(pix);
+}
+
 void MainWindow::on_buttonSelectFile_clicked() {
     QString fileName = QFileDialog::getOpenFileName(this, "Open CSV", "", "CSV files (*.csv)");
     if (!fileName.isEmpty()) {
@@ -63,10 +86,10 @@ void MainWindow::on_buttonLoadData_clicked() {
 
     doOperation(OPERATION_LOAD_DATA, &context, &params);
 
-    int errorRows = context.fileStats.totalRows - context.fileStats.validRows;
+    int errorRows = context.rows.total - context.rows.valid;
     QString message = QString("Total rows: %1\nValid rows: %2\nErrors: %3\n\n%4")
-                          .arg(context.fileStats.totalRows)
-                          .arg(context.fileStats.validRows)
+                          .arg(context.rows.total)
+                          .arg(context.rows.valid)
                           .arg(errorRows)
                           .arg(QString::fromUtf8(context.error.message));
     QMessageBox::information(this, "Load Result", message);
@@ -77,16 +100,10 @@ void MainWindow::on_buttonLoadData_clicked() {
 void MainWindow::on_buttonCalculateAndDraw_clicked() {
     int success = 1;
     QString errorMsg;
-
-    if (context.dataList == nullptr) {
-        success = 0;
-        errorMsg = "No data loaded. Please load a file first.";
-    }
-
     QString regionName;
     if (success) {
         regionName = ui->comboBoxRegion->currentText().trimmed();
-        if (regionName.isEmpty()) {
+        if (regionName == "ALL REGIONS") {
             success = 0;
             errorMsg = "Please select a region.";
         }
@@ -125,18 +142,7 @@ void MainWindow::on_buttonCalculateAndDraw_clicked() {
         ui->lineEditMax->setText(QString::number(context.metrics.max, 'f', 3));
         ui->lineEditMedian->setText(QString::number(context.metrics.median, 'f', 3));
 
-        GraphData graphData;
-        graphData.years = context.plot.years;
-        graphData.values = context.plot.values;
-        graphData.count = context.plot.count;
-        graphData.minValue = context.metrics.min;
-        graphData.maxValue = context.metrics.max;
-        graphData.medianValue = context.metrics.median;
-        graphData.yearMin = context.plot.yearMin;
-        graphData.yearMax = context.plot.yearMax;
-        graphData.size = ui->graphLabel->size();
-        QPixmap pix = draw_graph(graphData);
-        ui->graphLabel->setPixmap(pix);
+        update_graph_display();
 
     } else {
         QMessageBox::warning(this, "Calculation error", errorMsg);
@@ -147,11 +153,6 @@ void MainWindow::on_buttonCalculateAndDraw_clicked() {
 }
 
 void MainWindow::refresh_selectors() {
-    if (context.dataList == nullptr) {
-        return;
-    }
-
-    ui->comboBoxRegion->blockSignals(true);
     ui->comboBoxRegion->clear();
     ui->comboBoxYearFrom->clear();
     ui->comboBoxYearTo->clear();
@@ -169,7 +170,7 @@ void MainWindow::refresh_selectors() {
         iter_next(&it);
     }
 
-    ui->comboBoxRegion->addItem(""); //все регионы
+    ui->comboBoxRegion->addItem("ALL REGIONS");
     QList<QString> sortedRegions = regions.values();
     std::sort(sortedRegions.begin(), sortedRegions.end());
     for (const QString& reg : sortedRegions) {
@@ -189,7 +190,6 @@ void MainWindow::refresh_selectors() {
     }
 
     ui->comboBoxRegion->setCurrentIndex(0);
-    ui->comboBoxRegion->blockSignals(false);
 
     fill_table_by_region(ui->comboBoxRegion->currentText());
 }
@@ -203,7 +203,7 @@ void MainWindow::fill_table_by_region(const QString& region) {
         DataRow* data = iter_get(&it);
         if (data != nullptr) {
             QString rowRegion = QString::fromUtf8(data->region);
-            if (region.isEmpty()  || rowRegion == region) {
+            if (region == "ALL REGIONS" || rowRegion == region) {
                 ui->tableWidgetData->insertRow(row);
                 ui->tableWidgetData->setItem(row, COL_YEAR, new QTableWidgetItem(QString::number(data->year)));
                 ui->tableWidgetData->setItem(row, COL_REGION, new QTableWidgetItem(rowRegion));
