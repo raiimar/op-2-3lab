@@ -45,16 +45,15 @@ MainWindow::~MainWindow() {
 
 void MainWindow::resizeEvent(QResizeEvent* event) {
     QMainWindow::resizeEvent(event);
-    if (context.plot.count > 0) {
+    if (context.plot.filteredData != NULL && context.plot.filteredData->size > 0) {
         update_graph_display();
     }
 }
 
 void MainWindow::update_graph_display() {
     GraphData graphData;
-    graphData.years = context.plot.years;
-    graphData.values = context.plot.values;
-    graphData.count = context.plot.count;
+    graphData.dataList = context.plot.filteredData;
+    graphData.columnIndex = context.plot.columnIndex;
     graphData.minValue = context.metrics.min;
     graphData.maxValue = context.metrics.max;
     graphData.medianValue = context.metrics.median;

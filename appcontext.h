@@ -19,9 +19,8 @@ typedef struct {
 } MetricsResult;
 
 typedef struct {
-    int* years; //
-    double* values; //
-    int count; //
+    List* filteredData;
+    int columnIndex;
     char region[REGION_NAME_LENGTH];
     int yearMin;
     int yearMax;
@@ -30,7 +29,7 @@ typedef struct {
 typedef struct {
     Status code;
     char message[ERROR_MESSAGE_LENGTH];
-} ErrorInfo; //
+} ErrorInfo;
 
 typedef struct AppContext {
     List* dataList;

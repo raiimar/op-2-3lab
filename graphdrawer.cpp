@@ -1,4 +1,5 @@
 #include "graphdrawer.h"
+#include "iterator.h"
 #include <QPainterPath>
 #include <cmath>
 
@@ -16,7 +17,6 @@ static void draw_axes(const DrawContext& dc) {
     dc.painter->setPen(QPen(QColor("#5d3d91"), THIN_LINE));
     dc.painter->drawLine(0, dc.draw_h - 1, dc.draw_w - 1, dc.draw_h - 1);
     dc.painter->drawLine(0, 0, 0, dc.draw_h - 1);
-
     dc.painter->setPen(QColor("#cfbfff"));
     dc.painter->drawText(dc.draw_w / 2 - 2*SMALL_INDENT, dc.draw_h + BIG_INDENT, "Year");
     dc.painter->drawText(-BIG_INDENT, -2*SMALL_INDENT, "Value");
@@ -31,7 +31,6 @@ static void draw_grid_and_ticks(const DrawContext& dc) {
         int x = map_to_x(year, dc);
         dc.painter->drawLine(x, 0, x, dc.draw_h - 1);
         dc.painter->drawLine(x, dc.draw_h - 1, x, dc.draw_h - 1 + AXIS_TICK_LENGTH);
-
         QString label = QString::number(year);
         int label_w = fm.horizontalAdvance(label);
         dc.painter->drawText(x - label_w / 2, dc.draw_h + AXIS_TICK_LENGTH + 2*SMALL_INDENT, label);
@@ -42,7 +41,6 @@ static void draw_grid_and_ticks(const DrawContext& dc) {
         int y = map_to_y(val, dc);
         dc.painter->drawLine(0, y, dc.draw_w - 1, y);
         dc.painter->drawLine(0, y, -AXIS_TICK_LENGTH, y);
-
         QString label = QString::number(val, 'f', 2);
         int label_w = fm.horizontalAdvance(label);
         dc.painter->drawText(-AXIS_TICK_LENGTH - SMALL_INDENT - label_w, y + fm.ascent() / 2, label);
@@ -51,17 +49,38 @@ static void draw_grid_and_ticks(const DrawContext& dc) {
 
 static void draw_data_line(const GraphData& data, const DrawContext& dc) {
     QPainterPath path;
-    path.moveTo(map_to_x(data.years[0], dc), map_to_y(data.values[0], dc));
-    for (int i = 1; i < data.count; ++i) {
-        path.lineTo(map_to_x(data.years[i], dc), map_to_y(data.values[i], dc));
+    Iterator it = iterator_create(data.dataList);
+    int first = 1;
+    while (iterator_has_next(&it)) {
+        DataRow* row = (DataRow*)iterator_get(&it);
+        if (row != NULL) {
+            double value = get_column_value(row, data.columnIndex);
+            int x = map_to_x(row->year, dc);
+            int y = map_to_y(value, dc);
+            if (first) {
+                path.moveTo(x, y);
+                first = 0;
+            } else {
+                path.lineTo(x, y);
+            }
+        }
+        iterator_next(&it);
     }
     dc.painter->setPen(QPen(QColor("#cfbfff"), THICK_LINE));
     dc.painter->drawPath(path);
 
     dc.painter->setBrush(QColor("#cfbfff"));
     dc.painter->setPen(Qt::NoPen);
-    for (int i = 0; i < data.count; ++i) {
-        dc.painter->drawEllipse(QPoint(map_to_x(data.years[i], dc), map_to_y(data.values[i], dc)), POINT_RADIUS, POINT_RADIUS);
+    it = iterator_create(data.dataList);
+    while (iterator_has_next(&it)) {
+        DataRow* row = (DataRow*)iterator_get(&it);
+        if (row != NULL) {
+            double value = get_column_value(row, data.columnIndex);
+            int x = map_to_x(row->year, dc);
+            int y = map_to_y(value, dc);
+            dc.painter->drawEllipse(QPoint(x, y), POINT_RADIUS, POINT_RADIUS);
+        }
+        iterator_next(&it);
     }
 }
 

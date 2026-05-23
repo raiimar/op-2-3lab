@@ -1,17 +1,10 @@
 #ifndef GRAPHDRAWER_H
 #define GRAPHDRAWER_H
 
-// COLOR_BACKGROUND = QColor("#15121d");
-// COLOR_FRAME = QColor("#5d3d91");
-// COLOR_LINE = QColor("#cfbfff");
-// COLOR_TEXT = QColor("#cfbfff");
-// COLOR_MAX = QColor("#FF3333");
-// COLOR_MEDIAN = QColor("#FFFF00");
-// COLOR_MIN = QColor("#3399FF");
-
 #include <QPixmap>
 #include <QSize>
 #include <QPainter>
+#include "list.h"
 
 enum DrawingConstants {
     SIDE_PADDING_SMALL = 25,
@@ -26,14 +19,9 @@ enum DrawingConstants {
     Y_PADDING_RATIO = 1
 };
 
-struct Colors {
-
-};
-
 struct GraphData {
-    const int* years; //
-    const double* values;//
-    int count;//
+    List* dataList; //
+    int columnIndex;//
     double minValue;//
     double maxValue;//
     double medianValue;//
@@ -46,7 +34,7 @@ struct DrawContext {
     QPainter* painter;
     int draw_w;
     int draw_h;
-    int yearMin; //
+    int yearMin;//
     int yearMax;
     double minVal;
     double maxVal;

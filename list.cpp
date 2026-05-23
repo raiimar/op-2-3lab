@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int matches_filter(const DataRow* row, const char* region, YearRange years) {
+static int matches_filter(const DataRow* row, const char* region, int startYear, int endYear) {
     int result = 0;
-    if (row != NULL && row->year >= years.start && row->year <= years.end) {
+    if (row != NULL && row->year >= startYear && row->year <= endYear) {
         if (strcmp(row->region, region) == 0) {
             result = 1;
         }
@@ -91,7 +91,7 @@ double get_column_value(const DataRow* row, int columnIndex) {
     return result;
 }
 
-List* filter_to_list(List* list, const char* region, YearRange years) {
+List* filter_to_list(List* list, const char* region, int startYear, int endYear) {
     List* result = NULL;
     int success = 1;
     Iterator it;
@@ -102,7 +102,7 @@ List* filter_to_list(List* list, const char* region, YearRange years) {
             it = iterator_create(list);
             while (iterator_has_next(&it) && success) {
                 DataRow* row = (DataRow*)iterator_get(&it);
-                if (matches_filter(row, region, years)) {
+                if (matches_filter(row, region, startYear, endYear)) {
                     if (!add_filtered_item(result, row)) {
                         success = 0;
                     }
@@ -114,44 +114,6 @@ List* filter_to_list(List* list, const char* region, YearRange years) {
                 result = NULL;
             }
         }
-    }
-    return result;
-}
-
-int list_to_series(List* list, int columnIndex, FilteredSeries* out) {
-    int result = 0;
-    int count = 0;
-    int* yearsArr = NULL;
-    double* valuesArr = NULL;
-    Iterator it = iterator_create(list);
-
-    if (list != NULL && out != NULL && list->size > 0) {
-        yearsArr = (int*)malloc(sizeof(int) * list->size);
-        valuesArr = (double*)malloc(sizeof(double) * list->size);
-        if (yearsArr != NULL && valuesArr != NULL) {
-            while (iterator_has_next(&it)) {
-                DataRow* row = (DataRow*)iterator_get(&it);
-                if (row != NULL) {
-                    yearsArr[count] = row->year;
-                    valuesArr[count] = get_column_value(row, columnIndex);
-                    count++;
-                }
-                iterator_next(&it);
-            }
-            out->years = yearsArr;
-            out->values = valuesArr;
-            out->count = count;
-            result = 1;
-        } else {
-            free(yearsArr);
-            free(valuesArr);
-        }
-    }
-
-    if (result == 0) {
-        out->years = NULL;
-        out->values = NULL;
-        out->count = 0;
     }
     return result;
 }

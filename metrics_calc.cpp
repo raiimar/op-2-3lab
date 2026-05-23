@@ -1,30 +1,76 @@
 #include "metrics_calc.h"
 #include "context_state.h"
+#include "iterator.h"
 #include <stdlib.h>
 #include <string.h>
 
-void calc_metrics(List* list, int columnIndex, double* min, double* max, double* median) {
-    *min = get_column_value((DataRow*)list->head->data, columnIndex);
-    *max = get_column_value((DataRow*)list->tail->data, columnIndex);
-    int mid = (list->size - 1) / 2;
-    Node* midNode = list->head;
-    for (int i = 0; i < mid; ++i) {
-        midNode = midNode->next;
+static List* copy_list(List* source) {
+    List* result = NULL;
+    Iterator it;
+    if (source != NULL) {
+        result = list_create();
+        if (result != NULL) {
+            it = iterator_create(source);
+            while (iterator_has_next(&it)) {
+                DataRow* row = (DataRow*)iterator_get(&it);
+                DataRow* copy = (DataRow*)malloc(sizeof(DataRow));
+                if (copy != NULL) {
+                    *copy = *row;
+                    if (!list_push_back(result, copy)) {
+                        free(copy);
+                        list_clear(result);
+                        result = NULL;
+                        break;
+                    }
+                } else {
+                    list_clear(result);
+                    result = NULL;
+                    break;
+                }
+                iterator_next(&it);
+            }
+        }
     }
-    double v1 = get_column_value((DataRow*)midNode->data, columnIndex);
-    if (list->size % 2 == 1) {
-        *median = v1;
+    return result;
+}
+
+void calc_metrics(List* list, int columnIndex, double* min, double* max, double* median) {
+    Node* current = list->head;
+    *min = get_column_value((DataRow*)current->data, columnIndex);
+    *max = *min;
+    int count = 0;
+    while (current != NULL) {
+        double val = get_column_value((DataRow*)current->data, columnIndex);
+        if (val < *min) *min = val;
+        if (val > *max) *max = val;
+        count++;
+        current = current->next;
+    }
+
+    List* sorted = copy_list(list);
+    if (sorted != NULL) {
+        sort_list_by_column(sorted, columnIndex);
+        int mid = (sorted->size - 1) / 2;
+        Node* midNode = sorted->head;
+        for (int i = 0; i < mid; ++i) {
+            midNode = midNode->next;
+        }
+        double v1 = get_column_value((DataRow*)midNode->data, columnIndex);
+        if (sorted->size % 2 == 1) {
+            *median = v1;
+        } else {
+            double v2 = get_column_value((DataRow*)midNode->next->data, columnIndex);
+            *median = (v1 + v2) / 2.0;
+        }
+        list_clear(sorted);
     } else {
-        double v2 = get_column_value((DataRow*)midNode->next->data, columnIndex);
-        *median = (v1 + v2) / 2.0;
+        *median = 0.0;
     }
 }
 
 void logic_calculate_metrics(AppContext* context, const AppParams* params) {
     int success = 1;
     List* filteredList = NULL;
-    YearRange years = {params->startYear, params->endYear};
-    FilteredSeries series = {NULL, NULL, 0};
 
     if (params->startYear >= params->endYear) {
         set_status_message(context, ERROR_INVALID_PARAMS, "Invalid year range.");
@@ -35,24 +81,27 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
         reset_metrics(context);
         clear_plot_buffers(context);
 
-        filteredList = filter_to_list(context->dataList, params->region, years);
-        sort_list_by_column(filteredList, COLUMN_YEAR);
-        list_to_series(filteredList, params->columnIndex, &series);
+        filteredList = filter_to_list(context->dataList, params->region,
+                                      params->startYear, params->endYear);
+        if (filteredList == NULL || filteredList->size == 0) {
+            set_status_message(context, ERROR_EMPTY_RESULT, "No data for given region and years.");
+            if (filteredList != NULL) list_clear(filteredList);
+            success = 0;
+        } else {
+            sort_list_by_column(filteredList, COLUMN_YEAR);
+            context->plot.filteredData = filteredList;
+            context->plot.columnIndex = params->columnIndex;
+            strncpy(context->plot.region, params->region, REGION_NAME_LENGTH - 1);
+            context->plot.region[REGION_NAME_LENGTH - 1] = '\0';
+            context->plot.yearMin = ((DataRow*)filteredList->head->data)->year;
+            context->plot.yearMax = ((DataRow*)filteredList->tail->data)->year;
 
-        context->plot.years = series.years;
-        context->plot.values = series.values;
-        context->plot.count = series.count;
-        strncpy(context->plot.region, params->region, REGION_NAME_LENGTH - 1);
-        context->plot.region[REGION_NAME_LENGTH - 1] = '\0';
-        context->plot.yearMin = series.years[0];
-        context->plot.yearMax = series.years[series.count - 1];
-
-        sort_list_by_column(filteredList, params->columnIndex);
-        calc_metrics(filteredList, params->columnIndex,
-                     &context->metrics.min, &context->metrics.max, &context->metrics.median);
+            calc_metrics(filteredList, params->columnIndex,
+                         &context->metrics.min, &context->metrics.max, &context->metrics.median);
+        }
     }
 
-    if (filteredList != NULL) {
+    if (!success && filteredList != NULL) {
         list_clear(filteredList);
     }
 

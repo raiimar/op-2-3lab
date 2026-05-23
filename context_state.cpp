@@ -4,9 +4,8 @@
 #include <string.h>
 
 void reset_plot_fields(AppContext* context) {
-    context->plot.years = NULL;
-    context->plot.values = NULL;
-    context->plot.count = 0;
+    context->plot.filteredData = NULL;
+    context->plot.columnIndex = 0;
     context->plot.region[0] = '\0';
     context->plot.yearMin = 0;
     context->plot.yearMax = 0;
@@ -22,11 +21,9 @@ void init_context(AppContext* context) {
 }
 
 void clear_plot_buffers(AppContext* context) {
-    if (context->plot.years != NULL) {
-        free(context->plot.years);
-    }
-    if (context->plot.values != NULL) {
-        free(context->plot.values);
+    if (context->plot.filteredData != NULL) {
+        list_clear(context->plot.filteredData);
+        context->plot.filteredData = NULL;
     }
     reset_plot_fields(context);
 }
