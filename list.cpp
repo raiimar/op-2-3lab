@@ -99,15 +99,15 @@ List* filter_to_list(List* list, const char* region, YearRange years) {
     if (list != NULL && region != NULL) {
         result = list_create();
         if (result != NULL) {
-            it = iter_create(list);
-            while (iter_has_next(&it) && success) {
-                DataRow* row = (DataRow*)iter_get(&it);
+            it = iterator_create(list);
+            while (iterator_has_next(&it) && success) {
+                DataRow* row = (DataRow*)iterator_get(&it);
                 if (matches_filter(row, region, years)) {
                     if (!add_filtered_item(result, row)) {
                         success = 0;
                     }
                 }
-                iter_next(&it);
+                iterator_next(&it);
             }
             if (!success) {
                 list_clear(result);
@@ -123,20 +123,20 @@ int list_to_series(List* list, int columnIndex, FilteredSeries* out) {
     int count = 0;
     int* yearsArr = NULL;
     double* valuesArr = NULL;
-    Iterator it = iter_create(list);
+    Iterator it = iterator_create(list);
 
     if (list != NULL && out != NULL && list->size > 0) {
         yearsArr = (int*)malloc(sizeof(int) * list->size);
         valuesArr = (double*)malloc(sizeof(double) * list->size);
         if (yearsArr != NULL && valuesArr != NULL) {
-            while (iter_has_next(&it)) {
-                DataRow* row = (DataRow*)iter_get(&it);
+            while (iterator_has_next(&it)) {
+                DataRow* row = (DataRow*)iterator_get(&it);
                 if (row != NULL) {
                     yearsArr[count] = row->year;
                     valuesArr[count] = get_column_value(row, columnIndex);
                     count++;
                 }
-                iter_next(&it);
+                iterator_next(&it);
             }
             out->years = yearsArr;
             out->values = valuesArr;

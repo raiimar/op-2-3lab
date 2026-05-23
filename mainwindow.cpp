@@ -160,14 +160,14 @@ void MainWindow::refresh_selectors() {
     QSet<QString> regions;
     QSet<int> years;
 
-    Iterator it = iter_create(context.dataList);
-    while (iter_has_next(&it)) {
-        DataRow* row = (DataRow*)iter_get(&it);
+    Iterator it = iterator_create(context.dataList);
+    while (iterator_has_next(&it)) {
+        DataRow* row = (DataRow*)iterator_get(&it);
         if (row != nullptr) {
             regions.insert(QString::fromUtf8(row->region));
             years.insert(row->year);
         }
-        iter_next(&it);
+        iterator_next(&it);
     }
 
     ui->comboBoxRegion->addItem("ALL REGIONS");
@@ -198,9 +198,9 @@ void MainWindow::fill_table_by_region(const QString& region) {
     ui->tableWidgetData->setRowCount(0);
 
     int row = 0;
-    Iterator it = iter_create(context.dataList);
-    while (iter_has_next(&it)) {
-        DataRow* data = (DataRow*)iter_get(&it);
+    Iterator it = iterator_create(context.dataList);
+    while (iterator_has_next(&it)) {
+        DataRow* data = (DataRow*)iterator_get(&it);
         if (data != nullptr) {
             QString rowRegion = QString::fromUtf8(data->region);
             if (region == "ALL REGIONS" || rowRegion == region) {
@@ -215,6 +215,6 @@ void MainWindow::fill_table_by_region(const QString& region) {
                 ++row;
             }
         }
-        iter_next(&it);
+        iterator_next(&it);
     }
 }
