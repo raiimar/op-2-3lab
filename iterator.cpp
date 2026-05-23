@@ -11,7 +11,11 @@ Iterator iter_create(List* list) {
 }
 
 int iter_has_next(Iterator* it) {
-    return (it != NULL && it->current != NULL);
+    int result = 0;
+    if (it != NULL && it->current != NULL) {
+        result = 1;
+    }
+    return result;
 }
 
 void iter_next(Iterator* it) {
@@ -20,10 +24,10 @@ void iter_next(Iterator* it) {
     }
 }
 
-DataRow* iter_get(Iterator* it) {
-    DataRow* result = NULL;
+void* iter_get(Iterator* it) {
+    void* result = NULL;
     if (it != NULL && it->current != NULL) {
-        result = &(it->current->data);
+        result = it->current->data;
     }
     return result;
 }

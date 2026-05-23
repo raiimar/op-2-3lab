@@ -162,7 +162,7 @@ void MainWindow::refresh_selectors() {
 
     Iterator it = iter_create(context.dataList);
     while (iter_has_next(&it)) {
-        DataRow* row = iter_get(&it);
+        DataRow* row = (DataRow*)iter_get(&it);
         if (row != nullptr) {
             regions.insert(QString::fromUtf8(row->region));
             years.insert(row->year);
@@ -200,7 +200,7 @@ void MainWindow::fill_table_by_region(const QString& region) {
     int row = 0;
     Iterator it = iter_create(context.dataList);
     while (iter_has_next(&it)) {
-        DataRow* data = iter_get(&it);
+        DataRow* data = (DataRow*)iter_get(&it);
         if (data != nullptr) {
             QString rowRegion = QString::fromUtf8(data->region);
             if (region == "ALL REGIONS" || rowRegion == region) {

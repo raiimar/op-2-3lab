@@ -2,6 +2,7 @@
 #include "parser.h"
 #include "context_state.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define MAX_LINE_LENGTH 1024
@@ -15,8 +16,15 @@ static void process_lines(AppContext* context, FILE* file) {
         DataRow record;
         context->rows.total++;
         if (parse_demography_line(buffer, &record)) {
-            list_push_back(context->dataList, record);
-            context->rows.valid++;
+            DataRow* newRow = (DataRow*)malloc(sizeof(DataRow));
+            if (newRow != NULL) {
+                *newRow = record;
+                if (!list_push_back(context->dataList, newRow)) {
+                    free(newRow);
+                } else {
+                    context->rows.valid++;
+                }
+            }
         }
     }
 }
@@ -41,18 +49,17 @@ void load_data(AppContext* context, const char* filePath) {
             list_clear(context->dataList);
             context->dataList = NULL;
             success = 0;
-            fclose(file);
         }
     }
 
-    if (success) {
+    if (success && file != NULL) {
         if (fgets(headerBuffer, sizeof(headerBuffer), file) == NULL) {
             set_status_message(context, ERROR_FILE_READ, "Failed to read header.");
             list_clear(context->dataList);
             context->dataList = NULL;
-            success = 0;
         } else {
             process_lines(context, file);
+            set_status_message(context, STATUS_OK, "Data loaded successfully.");
         }
         fclose(file);
     }

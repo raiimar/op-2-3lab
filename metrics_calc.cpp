@@ -1,23 +1,22 @@
 #include "metrics_calc.h"
 #include "context_state.h"
-
 #include <stdlib.h>
 #include <string.h>
 
 void calc_metrics(List* list, int columnIndex, double* min, double* max, double* median) {
-    *min = get_column_value(&list->head->data, columnIndex);
-    *max = get_column_value(&list->tail->data, columnIndex);
+    *min = get_column_value((DataRow*)list->head->data, columnIndex);
+    *max = get_column_value((DataRow*)list->tail->data, columnIndex);
     int mid = (list->size - 1) / 2;
     Node* midNode = list->head;
     for (int i = 0; i < mid; ++i) {
         midNode = midNode->next;
     }
-    double v1 = get_column_value(&midNode->data, columnIndex);
+    double v1 = get_column_value((DataRow*)midNode->data, columnIndex);
     if (list->size % 2 == 1) {
         *median = v1;
     } else {
-        double v2 = get_column_value(&midNode->next->data, columnIndex);
-        *median = (v1 + v2) / 2;
+        double v2 = get_column_value((DataRow*)midNode->next->data, columnIndex);
+        *median = (v1 + v2) / 2.0;
     }
 }
 

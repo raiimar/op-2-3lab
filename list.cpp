@@ -13,7 +13,21 @@ static int matches_filter(const DataRow* row, const char* region, YearRange year
     return result;
 }
 
-List* list_create() {
+static int add_filtered_item(List* list, DataRow* row) {
+    int result = 0;
+    DataRow* copy = (DataRow*)malloc(sizeof(DataRow));
+    if (copy != NULL) {
+        *copy = *row;
+        if (list_push_back(list, copy)) {
+            result = 1;
+        } else {
+            free(copy);
+        }
+    }
+    return result;
+}
+
+List* list_create(void) {
     List* list = (List*)malloc(sizeof(List));
     if (list != NULL) {
         list->head = NULL;
@@ -23,9 +37,9 @@ List* list_create() {
     return list;
 }
 
-int list_push_back(List* list, DataRow data) {
+int list_push_back(List* list, void* data) {
     int result = 0;
-    if (list != NULL) {
+    if (list != NULL && data != NULL) {
         Node* newNode = (Node*)malloc(sizeof(Node));
         if (newNode != NULL) {
             newNode->data = data;
@@ -50,6 +64,7 @@ void list_clear(List* list) {
         while (current != NULL) {
             Node* toDelete = current;
             current = current->next;
+            free(toDelete->data);
             free(toDelete);
         }
         free(list);
@@ -57,7 +72,7 @@ void list_clear(List* list) {
 }
 
 double get_column_value(const DataRow* row, int columnIndex) {
-    double result = 0;
+    double result = 0.0;
     if (row != NULL) {
         if (columnIndex == COLUMN_YEAR) {
             result = (double)row->year;
@@ -79,15 +94,16 @@ double get_column_value(const DataRow* row, int columnIndex) {
 List* filter_to_list(List* list, const char* region, YearRange years) {
     List* result = NULL;
     int success = 1;
-    Iterator it = iter_create(list);
+    Iterator it;
 
     if (list != NULL && region != NULL) {
         result = list_create();
         if (result != NULL) {
+            it = iter_create(list);
             while (iter_has_next(&it) && success) {
-                DataRow* row = iter_get(&it);
+                DataRow* row = (DataRow*)iter_get(&it);
                 if (matches_filter(row, region, years)) {
-                    if (!list_push_back(result, *row)) {
+                    if (!add_filtered_item(result, row)) {
                         success = 0;
                     }
                 }
@@ -114,7 +130,7 @@ int list_to_series(List* list, int columnIndex, FilteredSeries* out) {
         valuesArr = (double*)malloc(sizeof(double) * list->size);
         if (yearsArr != NULL && valuesArr != NULL) {
             while (iter_has_next(&it)) {
-                DataRow* row = iter_get(&it);
+                DataRow* row = (DataRow*)iter_get(&it);
                 if (row != NULL) {
                     yearsArr[count] = row->year;
                     valuesArr[count] = get_column_value(row, columnIndex);
@@ -146,9 +162,9 @@ void sort_list_by_column(List* list, int columnIndex) {
 
     while (current != NULL) {
         Node* next = current->next;
-        double value = get_column_value(&current->data, columnIndex);
+        double value = get_column_value((DataRow*)current->data, columnIndex);
 
-        if (sorted == NULL || get_column_value(&sorted->data, columnIndex) >= value) {
+        if (sorted == NULL || get_column_value((DataRow*)sorted->data, columnIndex) >= value) {
             current->next = sorted;
             if (sorted != NULL) {
                 sorted->prev = current;
@@ -157,7 +173,7 @@ void sort_list_by_column(List* list, int columnIndex) {
             sorted = current;
         } else {
             Node* p = sorted;
-            while (p->next != NULL && get_column_value(&p->next->data, columnIndex) < value) {
+            while (p->next != NULL && get_column_value((DataRow*)p->next->data, columnIndex) < value) {
                 p = p->next;
             }
             current->next = p->next;

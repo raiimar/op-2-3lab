@@ -4,7 +4,7 @@
 #include "data.h"
 
 typedef struct Node {
-    DataRow data; //
+    void* data;
     struct Node* next;
     struct Node* prev;
 } Node;
@@ -15,19 +15,19 @@ typedef struct {
     int size;
 } List;
 
-typedef struct { //
+typedef struct {
     int start;
     int end;
-} YearRange;
+} YearRange; //
 
-typedef struct { //
+typedef struct {
     int* years;
     double* values;
     int count;
-} FilteredSeries;
+} FilteredSeries; //
 
 List* list_create(void);
-int list_push_back(List* list, DataRow data);
+int list_push_back(List* list, void* data);
 void list_clear(List* list);
 
 double get_column_value(const DataRow* row, int columnIndex);
