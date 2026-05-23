@@ -42,7 +42,6 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
         context->plot.years = series.years;
         context->plot.values = series.values;
         context->plot.count = series.count;
-        context->plot.columnIndex = params->columnIndex;
         strncpy(context->plot.region, params->region, REGION_NAME_LENGTH - 1);
         context->plot.region[REGION_NAME_LENGTH - 1] = '\0';
         context->plot.yearMin = series.years[0];

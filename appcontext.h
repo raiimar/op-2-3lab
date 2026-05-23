@@ -22,7 +22,6 @@ typedef struct {
     int* years; //
     double* values; //
     int count; //
-    int columnIndex; //
     char region[REGION_NAME_LENGTH];
     int yearMin;
     int yearMax;

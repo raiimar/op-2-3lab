@@ -7,7 +7,6 @@ void reset_plot_fields(AppContext* context) {
     context->plot.years = NULL;
     context->plot.values = NULL;
     context->plot.count = 0;
-    context->plot.columnIndex = 0;
     context->plot.region[0] = '\0';
     context->plot.yearMin = 0;
     context->plot.yearMax = 0;
