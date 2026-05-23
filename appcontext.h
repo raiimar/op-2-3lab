@@ -26,7 +26,7 @@ typedef struct {
 
 typedef struct {
     List* filteredData;
-    int columnIndex;
+    DataColumnNumbers columnIndex;
     char region[REGION_NAME_LENGTH];
     int yearMin;
     int yearMax;

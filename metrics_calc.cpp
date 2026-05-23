@@ -80,6 +80,7 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
     if (success) {
         reset_metrics(context);
         clear_plot_buffers(context);
+        context->plot.columnIndex = (DataColumnNumbers)params->columnIndex;
 
         filteredList = filter_to_list(context->dataList, params->region,
                                       params->startYear, params->endYear);
@@ -90,7 +91,6 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
         } else {
             sort_list_by_column(filteredList, COLUMN_YEAR);
             context->plot.filteredData = filteredList;
-            context->plot.columnIndex = params->columnIndex;
             strncpy(context->plot.region, params->region, REGION_NAME_LENGTH - 1);
             context->plot.region[REGION_NAME_LENGTH - 1] = '\0';
             context->plot.yearMin = ((DataRow*)filteredList->head->data)->year;
