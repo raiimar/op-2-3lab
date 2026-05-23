@@ -20,13 +20,13 @@ void calc_metrics(List* list, int columnIndex, double* min, double* max, double*
     }
 }
 
-void logic_calculate_metrics(AppContext* context, const char* region, int columnIndex, int startYear, int endYear) {
+void logic_calculate_metrics(AppContext* context, const AppParams* params) {
     int success = 1;
     List* filteredList = NULL;
-    YearRange years = {startYear, endYear};
+    YearRange years = {params->startYear, params->endYear};
     FilteredSeries series = {NULL, NULL, 0};
 
-    if (startYear >= endYear) {
+    if (params->startYear >= params->endYear) {
         set_status_message(context, ERROR_INVALID_PARAMS, "Invalid year range.");
         success = 0;
     }
@@ -35,21 +35,22 @@ void logic_calculate_metrics(AppContext* context, const char* region, int column
         reset_metrics(context);
         clear_plot_buffers(context);
 
-        filteredList = filter_to_list(context->dataList, region, years);
+        filteredList = filter_to_list(context->dataList, params->region, years);
         sort_list_by_column(filteredList, COLUMN_YEAR);
-        list_to_series(filteredList, columnIndex, &series);
+        list_to_series(filteredList, params->columnIndex, &series);
 
         context->plot.years = series.years;
         context->plot.values = series.values;
         context->plot.count = series.count;
-        context->plot.columnIndex = columnIndex;
-        strncpy(context->plot.region, region, REGION_NAME_LENGTH - 1);
+        context->plot.columnIndex = params->columnIndex;
+        strncpy(context->plot.region, params->region, REGION_NAME_LENGTH - 1);
         context->plot.region[REGION_NAME_LENGTH - 1] = '\0';
         context->plot.yearMin = series.years[0];
         context->plot.yearMax = series.years[series.count - 1];
 
-        sort_list_by_column(filteredList, columnIndex);
-        calc_metrics(filteredList, columnIndex, &context->metrics.min, &context->metrics.max, &context->metrics.median);
+        sort_list_by_column(filteredList, params->columnIndex);
+        calc_metrics(filteredList, params->columnIndex,
+                     &context->metrics.min, &context->metrics.max, &context->metrics.median);
     }
 
     if (filteredList != NULL) {

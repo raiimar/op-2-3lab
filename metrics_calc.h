@@ -3,8 +3,9 @@
 
 #include "list.h"
 #include "appcontext.h"
+#include "entrypoint.h"
 
-void calc_metrics(List* list, int columnIndex, double* min, double* max, double* median); //
-void logic_calculate_metrics(AppContext* context, const char* region, int columnIndex, int startYear, int endYear);
+void calc_metrics(List* list, int columnIndex, double* min, double* max, double* median);
+void logic_calculate_metrics(AppContext* context, const AppParams* params);
 
 #endif

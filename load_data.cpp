@@ -29,17 +29,19 @@ static void process_lines(AppContext* context, FILE* file) {
     }
 }
 
-void load_data(AppContext* context, const char* filePath) {
+void load_data(AppContext* context, const AppParams* params) {
     int success = 1;
     FILE* file = NULL;
     char headerBuffer[MAX_LINE_LENGTH];
+    const char* filePath = NULL;
 
-    if (filePath == NULL || filePath[0] == '\0') {
+    if (params == NULL || params->filePath[0] == '\0') {
         set_status_message(context, ERROR_INVALID_PARAMS, "Invalid file path.");
         success = 0;
     }
 
     if (success) {
+        filePath = params->filePath;
         clear_context_data(context);
         context->dataList = list_create();
 
