@@ -3,9 +3,15 @@
 
 #include "data.h"
 #include "list.h"
-#include "status.h"
 
-#define ERROR_MESSAGE_LENGTH 256
+typedef enum {
+    STATUS_OK,
+    ERROR_FILE_OPEN,
+    ERROR_FILE_READ,
+    ERROR_INVALID_DATA,
+    ERROR_INVALID_PARAMS,
+    ERROR_EMPTY_RESULT
+} Status;
 
 typedef struct {
     int total;
@@ -26,17 +32,12 @@ typedef struct {
     int yearMax;
 } PlotData;
 
-typedef struct {
-    Status code;
-    char message[ERROR_MESSAGE_LENGTH];
-} ErrorInfo;
-
 typedef struct AppContext {
     List* dataList;
     Rows rows;
     MetricsResult metrics;
     PlotData plot;
-    ErrorInfo error;
+    Status status;
 } AppContext;
 
 #endif

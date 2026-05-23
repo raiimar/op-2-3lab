@@ -73,7 +73,7 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
     List* filteredList = NULL;
 
     if (params->startYear >= params->endYear) {
-        set_status_message(context, ERROR_INVALID_PARAMS, "Invalid year range.");
+        set_status_message(context, ERROR_INVALID_PARAMS);
         success = 0;
     }
 
@@ -84,7 +84,7 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
         filteredList = filter_to_list(context->dataList, params->region,
                                       params->startYear, params->endYear);
         if (filteredList == NULL || filteredList->size == 0) {
-            set_status_message(context, ERROR_EMPTY_RESULT, "No data for given region and years.");
+            set_status_message(context, ERROR_EMPTY_RESULT);
             if (filteredList != NULL) list_clear(filteredList);
             success = 0;
         } else {
@@ -106,6 +106,6 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
     }
 
     if (success) {
-        set_status_message(context, STATUS_OK, "Metrics calculated.");
+        set_status_message(context, STATUS_OK);
     }
 }

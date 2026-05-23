@@ -11,6 +11,18 @@
 #include <algorithm>
 #include <cstring>
 
+static QString get_status_string(Status status) {
+    switch (status) {
+    case STATUS_OK:           return "Success";
+    case ERROR_FILE_OPEN:     return "Failed to open file.";
+    case ERROR_FILE_READ:     return "Failed to read header.";
+    case ERROR_INVALID_DATA:  return "Invalid data in file.";
+    case ERROR_INVALID_PARAMS:return "Invalid parameters provided.";
+    case ERROR_EMPTY_RESULT:  return "No data for given region and years.";
+    default:                  return "Unknown error.";
+    }
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -90,7 +102,7 @@ void MainWindow::on_buttonLoadData_clicked() {
                           .arg(context.rows.total)
                           .arg(context.rows.valid)
                           .arg(errorRows)
-                          .arg(QString::fromUtf8(context.error.message));
+                          .arg(get_status_string(context.status));
     QMessageBox::information(this, "Load Result", message);
 
     refresh_selectors();
@@ -130,9 +142,9 @@ void MainWindow::on_buttonCalculateAndDraw_clicked() {
         params.startYear = startYear;
         params.endYear = endYear;
         doOperation(OPERATION_CALCULATE_METRICS, &context, &params);
-        if (context.error.code != STATUS_OK) {
+        if (context.status != STATUS_OK) {
             success = 0;
-            errorMsg = QString::fromUtf8(context.error.message);
+            errorMsg = get_status_string(context.status);
         }
     }
 
@@ -140,9 +152,7 @@ void MainWindow::on_buttonCalculateAndDraw_clicked() {
         ui->lineEditMin->setText(QString::number(context.metrics.min, 'f', 3));
         ui->lineEditMax->setText(QString::number(context.metrics.max, 'f', 3));
         ui->lineEditMedian->setText(QString::number(context.metrics.median, 'f', 3));
-
         update_graph_display();
-
     } else {
         QMessageBox::warning(this, "Calculation error", errorMsg);
         ui->lineEditMin->clear();
@@ -189,7 +199,6 @@ void MainWindow::refresh_selectors() {
     }
 
     ui->comboBoxRegion->setCurrentIndex(0);
-
     fill_table_by_region(ui->comboBoxRegion->currentText());
 }
 

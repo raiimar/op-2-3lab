@@ -26,8 +26,7 @@ HEADERS += \
     load_data.h \
     mainwindow.h \
     metrics_calc.h \
-    parser.h \
-    status.h
+    parser.h
 
 FORMS += \
     mainwindow.ui

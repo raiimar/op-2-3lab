@@ -1,8 +1,9 @@
 #include "load_data.h"
 #include "parser.h"
 #include "context_state.h"
-#include <stdio.h>
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #define MAX_LINE_LENGTH 1024
@@ -36,7 +37,7 @@ void load_data(AppContext* context, const AppParams* params) {
     const char* filePath = NULL;
 
     if (params == NULL || params->filePath[0] == '\0') {
-        set_status_message(context, ERROR_INVALID_PARAMS, "Invalid file path.");
+        set_status_message(context, ERROR_INVALID_PARAMS);
         success = 0;
     }
 
@@ -47,7 +48,7 @@ void load_data(AppContext* context, const AppParams* params) {
 
         file = fopen(filePath, "r");
         if (file == NULL) {
-            set_status_message(context, ERROR_FILE_OPEN, "Failed to open file.");
+            set_status_message(context, ERROR_FILE_OPEN);
             list_clear(context->dataList);
             context->dataList = NULL;
             success = 0;
@@ -56,12 +57,12 @@ void load_data(AppContext* context, const AppParams* params) {
 
     if (success && file != NULL) {
         if (fgets(headerBuffer, sizeof(headerBuffer), file) == NULL) {
-            set_status_message(context, ERROR_FILE_READ, "Failed to read header.");
+            set_status_message(context, ERROR_FILE_READ);
             list_clear(context->dataList);
             context->dataList = NULL;
         } else {
             process_lines(context, file);
-            set_status_message(context, STATUS_OK, "Data loaded successfully.");
+            set_status_message(context, STATUS_OK);
         }
         fclose(file);
     }

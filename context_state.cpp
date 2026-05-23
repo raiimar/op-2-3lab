@@ -16,7 +16,7 @@ void init_context(AppContext* context) {
     context->rows.total = 0;
     context->rows.valid = 0;
     reset_metrics(context);
-    set_status_message(context, STATUS_OK, "");
+    set_status_message(context, STATUS_OK);
     reset_plot_fields(context);
 }
 
@@ -43,11 +43,9 @@ void clear_context_data(AppContext* context) {
     reset_metrics(context);
     context->rows.total = 0;
     context->rows.valid = 0;
-    set_status_message(context, STATUS_OK, "");
+    set_status_message(context, STATUS_OK);
 }
 
-void set_status_message(AppContext* context, Status status, const char* message) {
-    context->error.code = status;
-    strncpy(context->error.message, message, ERROR_MESSAGE_LENGTH - 1);
-    context->error.message[ERROR_MESSAGE_LENGTH - 1] = '\0';
+void set_status_message(AppContext* context, Status status) {
+    context->status = status;
 }
