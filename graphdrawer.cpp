@@ -2,7 +2,7 @@
 #include <QPainterPath>
 #include <cmath>
 
-static int map_to_x(int year, const DrawContext& dc) { // //
+static int map_to_x(int year, const DrawContext& dc) {
     double ratio = (double)(year - dc.yearMin) / (dc.yearMax - dc.yearMin);
     return qRound(ratio * (dc.draw_w - 1));
 }
@@ -13,17 +13,17 @@ static int map_to_y(double value, const DrawContext& dc) {
 }
 
 static void draw_axes(const DrawContext& dc) {
-    dc.painter->setPen(QPen(COLOR_FRAME, THIN_LINE));
+    dc.painter->setPen(QPen(QColor("#5d3d91"), THIN_LINE));
     dc.painter->drawLine(0, dc.draw_h - 1, dc.draw_w - 1, dc.draw_h - 1);
     dc.painter->drawLine(0, 0, 0, dc.draw_h - 1);
 
-    dc.painter->setPen(COLOR_TEXT);
+    dc.painter->setPen(QColor("#cfbfff"));
     dc.painter->drawText(dc.draw_w / 2 - 2*SMALL_INDENT, dc.draw_h + BIG_INDENT, "Year");
     dc.painter->drawText(-BIG_INDENT, -2*SMALL_INDENT, "Value");
 }
 
 static void draw_grid_and_ticks(const DrawContext& dc) {
-    dc.painter->setPen(QPen(COLOR_FRAME, THIN_LINE));
+    dc.painter->setPen(QPen(QColor("#5d3d91"), THIN_LINE));
     QFontMetrics fm(dc.painter->font());
 
     for (int i = 0; i <= GRID_STEPS; ++i) {
@@ -55,10 +55,10 @@ static void draw_data_line(const GraphData& data, const DrawContext& dc) {
     for (int i = 1; i < data.count; ++i) {
         path.lineTo(map_to_x(data.years[i], dc), map_to_y(data.values[i], dc));
     }
-    dc.painter->setPen(QPen(COLOR_LINE, THICK_LINE));
+    dc.painter->setPen(QPen(QColor("#cfbfff"), THICK_LINE));
     dc.painter->drawPath(path);
 
-    dc.painter->setBrush(COLOR_LINE);
+    dc.painter->setBrush(QColor("#cfbfff"));
     dc.painter->setPen(Qt::NoPen);
     for (int i = 0; i < data.count; ++i) {
         dc.painter->drawEllipse(QPoint(map_to_x(data.years[i], dc), map_to_y(data.values[i], dc)), POINT_RADIUS, POINT_RADIUS);
@@ -68,19 +68,19 @@ static void draw_data_line(const GraphData& data, const DrawContext& dc) {
 static void draw_metric_markers(double actualMin, double actualMax, double medianVal, const DrawContext& dc) {
     QFontMetrics fm(dc.painter->font());
 
-    dc.painter->setPen(QPen(COLOR_MAX, THICK_LINE));
+    dc.painter->setPen(QPen(QColor("#FF3333"), THICK_LINE));
     int yMax = map_to_y(actualMax, dc);
     dc.painter->drawLine(0, yMax, dc.draw_w - 1, yMax);
     QString maxStr = QString("Max: %1").arg(actualMax, 0, 'f', 3);
     dc.painter->drawText(dc.draw_w - fm.horizontalAdvance(maxStr) - SMALL_INDENT, yMax - SMALL_INDENT, maxStr);
 
-    dc.painter->setPen(QPen(COLOR_MIN, THICK_LINE));
+    dc.painter->setPen(QPen(QColor("#3399FF"), THICK_LINE));
     int yMin = map_to_y(actualMin, dc);
     dc.painter->drawLine(0, yMin, dc.draw_w - 1, yMin);
     QString minStr = QString("Min: %1").arg(actualMin, 0, 'f', 3);
     dc.painter->drawText(dc.draw_w - fm.horizontalAdvance(minStr) - SMALL_INDENT, yMin - SMALL_INDENT, minStr);
 
-    dc.painter->setPen(QPen(COLOR_MEDIAN, THICK_LINE));
+    dc.painter->setPen(QPen(QColor("#FFFF00"), THICK_LINE));
     int yMed = map_to_y(medianVal, dc);
     dc.painter->drawLine(0, yMed, dc.draw_w - 1, yMed);
     QString medStr = QString("Median: %1").arg(medianVal, 0, 'f', 3);
@@ -89,7 +89,7 @@ static void draw_metric_markers(double actualMin, double actualMax, double media
 
 QPixmap draw_graph(const GraphData& data) {
     QPixmap pixmap(data.size);
-    pixmap.fill(COLOR_BACKGROUND);
+    pixmap.fill(QColor("#15121d"));
     QPainter painter(&pixmap);
     painter.translate(SIDE_PADDING_BIG, SIDE_PADDING_SMALL);
 
@@ -101,7 +101,6 @@ QPixmap draw_graph(const GraphData& data) {
     dc.yearMax = data.yearMax;
 
     double padding = (data.maxValue - data.minValue) * Y_PADDING_RATIO / 10;
-
     dc.minVal = data.minValue - padding;
     dc.maxVal = data.maxValue + padding;
 
