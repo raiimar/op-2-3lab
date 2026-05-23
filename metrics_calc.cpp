@@ -4,30 +4,36 @@
 #include <stdlib.h>
 #include <string.h>
 
-static List* copy_list(List* source) {
+void copy_list_append(List* dest, DataRow* src, int* success) {
+    if (*success) {
+        DataRow* copy = (DataRow*)malloc(sizeof(DataRow));
+        if (copy != NULL) {
+            *copy = *src;
+            if (!list_push_back(dest, copy)) {
+                free(copy);
+                *success = 0;
+            }
+        } else {
+            *success = 0;
+        }
+    }
+}
+
+List* copy_list(List* source) {
     List* result = NULL;
-    Iterator it;
+    int success = 1;
     if (source != NULL) {
         result = list_create();
         if (result != NULL) {
-            it = iterator_create(source);
-            while (iterator_has_next(&it)) {
+            Iterator it = iterator_create(source);
+            while (success && iterator_has_next(&it)) {
                 DataRow* row = (DataRow*)iterator_get(&it);
-                DataRow* copy = (DataRow*)malloc(sizeof(DataRow));
-                if (copy != NULL) {
-                    *copy = *row;
-                    if (!list_push_back(result, copy)) {
-                        free(copy);
-                        list_clear(result);
-                        result = NULL;
-                        break;
-                    }
-                } else {
-                    list_clear(result);
-                    result = NULL;
-                    break;
-                }
+                copy_list_append(result, row, &success);
                 iterator_next(&it);
+            }
+            if (!success) {
+                list_clear(result);
+                result = NULL;
             }
         }
     }
@@ -82,8 +88,7 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
         clear_plot_buffers(context);
         context->plot.columnIndex = (DataColumnNumbers)params->columnIndex;
 
-        filteredList = filter_to_list(context->dataList, params->region,
-                                      params->startYear, params->endYear);
+        filteredList = filter_to_list(context->dataList, params->region, params->startYear, params->endYear);
         if (filteredList == NULL || filteredList->size == 0) {
             set_status_message(context, ERROR_EMPTY_RESULT);
             if (filteredList != NULL) list_clear(filteredList);
@@ -96,8 +101,7 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
             context->plot.yearMin = ((DataRow*)filteredList->head->data)->year;
             context->plot.yearMax = ((DataRow*)filteredList->tail->data)->year;
 
-            calc_metrics(filteredList, params->columnIndex,
-                         &context->metrics.min, &context->metrics.max, &context->metrics.median);
+            calc_metrics(filteredList, params->columnIndex, &context->metrics.min, &context->metrics.max, &context->metrics.median);
         }
     }
 

@@ -11,18 +11,6 @@
 #include <algorithm>
 #include <cstring>
 
-static QString get_status_string(Status status) {
-    switch (status) {
-    case STATUS_OK:           return "Success";
-    case ERROR_FILE_OPEN:     return "Failed to open file.";
-    case ERROR_FILE_READ:     return "Failed to read header.";
-    case ERROR_INVALID_DATA:  return "Invalid data in file.";
-    case ERROR_INVALID_PARAMS:return "Invalid parameters provided.";
-    case ERROR_EMPTY_RESULT:  return "No data for given region and years.";
-    default:                  return "Unknown error.";
-    }
-}
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -50,6 +38,34 @@ MainWindow::MainWindow(QWidget *parent)
     };
 }
 
+static QString get_status_string(Status status) {
+    const char* result;
+    switch (status) {
+    case STATUS_OK:
+        result = "Operation successed";
+        break;
+    case ERROR_FILE_OPEN:
+        result = "Failed to open file.";
+        break;
+    case ERROR_FILE_READ:
+        result = "Failed to read header.";
+        break;
+    case ERROR_INVALID_DATA:
+        result = "Invalid data in file.";
+        break;
+    case ERROR_INVALID_PARAMS:
+        result = "Invalid parameters provided.";
+        break;
+    case ERROR_EMPTY_RESULT:
+        result = "No data for given region and years.";
+        break;
+    default:
+        result = "Unknown error.";
+        break;
+    }
+    return QString(result);
+}
+
 MainWindow::~MainWindow() {
     doOperation(OPERATION_CLEAR_DATA, &context, nullptr);
     delete ui;
@@ -73,12 +89,12 @@ void MainWindow::update_graph_display() {
     graphData.yearMax = context.plot.yearMax;
     graphData.size = ui->graphLabel->size();
 
-    QPixmap pix = draw_graph(graphData);
+    QPixmap pix = draw_graph(&graphData);
     ui->graphLabel->setPixmap(pix);
 }
 
 void MainWindow::on_buttonSelectFile_clicked() {
-    QString fileName = QFileDialog::getOpenFileName(this, "Open CSV", "", "CSV files (*.csv)");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open CSV", "D:/vasilina/bau/c", "CSV files (*.csv)");
     if (!fileName.isEmpty()) {
         ui->lineEditFileName->setText(fileName);
     }

@@ -20,11 +20,11 @@ enum DrawingConstants {
 };
 
 struct GraphData {
-    List* dataList; //
-    int columnIndex;//
-    double minValue;//
-    double maxValue;//
-    double medianValue;//
+    List* dataList;
+    int columnIndex;
+    double minValue;
+    double maxValue;
+    double medianValue;
     int yearMin;
     int yearMax;
     QSize size;
@@ -34,12 +34,20 @@ struct DrawContext {
     QPainter* painter;
     int draw_w;
     int draw_h;
-    int yearMin;//
+    int yearMin;
     int yearMax;
     double minVal;
     double maxVal;
 };
 
-QPixmap draw_graph(const GraphData& data);
+QPixmap draw_graph(const GraphData* data);
+
+int map_to_x(int year, const DrawContext* dc);
+int map_to_y(double value, const DrawContext* dc);
+void draw_axes(const DrawContext* dc);
+void draw_grid_and_ticks(const DrawContext* dc);
+void draw_path(const GraphData* data, const DrawContext* dc);
+void draw_points(const GraphData* data, const DrawContext* dc);
+void draw_metric_markers(double actualMin, double actualMax, double medianVal, const DrawContext* dc);
 
 #endif

@@ -3,6 +3,9 @@
 
 #include "appcontext.h"
 
+#define REGION_NAME_LENGTH 128
+#define FILE_PATH_LENGHT 256
+
 typedef enum {
     OPERATION_INITIALIZATION,
     OPERATION_LOAD_DATA,
@@ -11,8 +14,8 @@ typedef enum {
 } Operation;
 
 typedef struct {
-    char filePath[256];
-    char region[128];
+    char filePath[FILE_PATH_LENGHT];
+    char region[REGION_NAME_LENGTH];
     int columnIndex;
     int startYear;
     int endYear;
