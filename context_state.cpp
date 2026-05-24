@@ -49,3 +49,30 @@ void clear_context_data(AppContext* context) {
     context->rows.valid = 0;
     set_status_message(context, STATUS_OK);
 }
+
+const char* get_status_string(Status status) {
+    const char* result = "Unknown error.";
+    switch (status) {
+    case STATUS_OK:
+        result = "Success";
+        break;
+    case ERROR_FILE_OPEN:
+        result = "Failed to open file.";
+        break;
+    case ERROR_FILE_READ:
+        result = "Failed to read header.";
+        break;
+    case ERROR_INVALID_DATA:
+        result = "Invalid data in file.";
+        break;
+    case ERROR_INVALID_PARAMS:
+        result = "Invalid parameters provided.";
+        break;
+    case ERROR_EMPTY_RESULT:
+        result = "No data for given region and years.";
+        break;
+    default:
+        break;
+    }
+    return result;
+}

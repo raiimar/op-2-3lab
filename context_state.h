@@ -9,5 +9,6 @@ void clear_context_data(AppContext* context);
 void reset_metrics(AppContext* context);
 void clear_plot_buffers(AppContext* context);
 void set_status_message(AppContext* context, Status status);
+const char* get_status_string(Status status);
 
 #endif

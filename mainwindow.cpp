@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "context_state.h"
 #include "entrypoint.h"
 #include "iterator.h"
 #include "data.h"
@@ -36,34 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
     for (int col = 0; col < TABLE_COLUMN_COUNT; ++col) {
         ui->tableWidgetData->horizontalHeader()->setSectionResizeMode(col, QHeaderView::Stretch);
     };
-}
-
-static QString get_status_string(Status status) {
-    const char* result;
-    switch (status) {
-    case STATUS_OK:
-        result = "Operation successed";
-        break;
-    case ERROR_FILE_OPEN:
-        result = "Failed to open file.";
-        break;
-    case ERROR_FILE_READ:
-        result = "Failed to read header.";
-        break;
-    case ERROR_INVALID_DATA:
-        result = "Invalid data in file.";
-        break;
-    case ERROR_INVALID_PARAMS:
-        result = "Invalid parameters provided.";
-        break;
-    case ERROR_EMPTY_RESULT:
-        result = "No data for given region and years.";
-        break;
-    default:
-        result = "Unknown error.";
-        break;
-    }
-    return QString(result);
 }
 
 MainWindow::~MainWindow() {
@@ -118,7 +91,7 @@ void MainWindow::on_buttonLoadData_clicked() {
                           .arg(context.rows.total)
                           .arg(context.rows.valid)
                           .arg(errorRows)
-                          .arg(get_status_string(context.status));
+                          .arg(QString::fromUtf8(get_status_string(context.status)));
     QMessageBox::information(this, "Load Result", message);
 
     refresh_selectors();
@@ -160,7 +133,7 @@ void MainWindow::on_buttonCalculateAndDraw_clicked() {
         doOperation(OPERATION_CALCULATE_METRICS, &context, &params);
         if (context.status != STATUS_OK) {
             success = 0;
-            errorMsg = get_status_string(context.status);
+            errorMsg = (QString::fromUtf8(get_status_string(context.status)));
         }
     }
 
