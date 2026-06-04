@@ -32,20 +32,16 @@ static void process_lines(AppContext* context, FILE* file) {
 
 void load_data(AppContext* context, const AppParams* params) {
     int success = 1;
-    FILE* file = NULL;
-    char headerBuffer[MAX_LINE_LENGTH];
     const char* filePath = NULL;
-
     if (params == NULL || params->filePath[0] == '\0') {
         set_status_message(context, ERROR_INVALID_PARAMS);
         success = 0;
     }
-
+    FILE* file = NULL;
     if (success) {
         filePath = params->filePath;
         clear_context_data(context);
         context->dataList = list_create();
-
         file = fopen(filePath, "r");
         if (file == NULL) {
             set_status_message(context, ERROR_FILE_OPEN);
@@ -54,7 +50,7 @@ void load_data(AppContext* context, const AppParams* params) {
             success = 0;
         }
     }
-
+    char headerBuffer[MAX_LINE_LENGTH];
     if (success && file != NULL) {
         if (fgets(headerBuffer, sizeof(headerBuffer), file) == NULL) {
             set_status_message(context, ERROR_FILE_READ);

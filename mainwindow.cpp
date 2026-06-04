@@ -97,56 +97,67 @@ void MainWindow::on_buttonLoadData_clicked() {
     refresh_selectors();
 }
 
-void MainWindow::on_buttonCalculateAndDraw_clicked() {
+int MainWindow::collect_calculate_params(AppParams& params, QString& errorMsg) {
     int success = 1;
-    QString errorMsg;
-    QString regionName;
-    if (success) {
-        regionName = ui->comboBoxRegion->currentText().trimmed();
-        if (regionName == "ALL REGIONS") {
-            success = 0;
-            errorMsg = "Please select a region.";
-        }
+
+    QString regionName = ui->comboBoxRegion->currentText().trimmed();
+    if (regionName == "ALL REGIONS") {
+        errorMsg = "Please select a region.";
+        success = 0;
     }
 
-    int columnIndex = 0;
-    int startYear = 0;
-    int endYear = 0;
-
     if (success) {
-        columnIndex = ui->comboBoxColumn->currentData().toInt();
-        startYear = ui->comboBoxYearFrom->currentData().toInt();
-        endYear = ui->comboBoxYearTo->currentData().toInt();
+        int startYear = ui->comboBoxYearFrom->currentData().toInt();
+        int endYear = ui->comboBoxYearTo->currentData().toInt();
         if (startYear > endYear) {
-            success = 0;
             errorMsg = "Start year cannot be greater than end year.";
-        }
-    }
-
-    AppParams params;
-    if (success) {
-        strncpy(params.region, regionName.toUtf8().constData(), sizeof(params.region) - 1);
-        params.region[sizeof(params.region) - 1] = '\0';
-        params.columnIndex = columnIndex;
-        params.startYear = startYear;
-        params.endYear = endYear;
-        doOperation(OPERATION_CALCULATE_METRICS, &context, &params);
-        if (context.status != STATUS_OK) {
             success = 0;
-            errorMsg = (QString::fromUtf8(get_status_string(context.status)));
+        } else {
+            params.columnIndex = ui->comboBoxColumn->currentData().toInt();
+            params.startYear = startYear;
+            params.endYear = endYear;
+            strncpy(params.region, regionName.toUtf8().constData(), sizeof(params.region) - 1);
+            params.region[sizeof(params.region) - 1] = '\0';
         }
     }
+    return success;
+}
 
-    if (success) {
-        ui->lineEditMin->setText(QString::number(context.metrics.min, 'f', 3));
-        ui->lineEditMax->setText(QString::number(context.metrics.max, 'f', 3));
-        ui->lineEditMedian->setText(QString::number(context.metrics.median, 'f', 3));
-        update_graph_display();
-    } else {
+void MainWindow::on_buttonCalculateAndDraw_clicked() {
+    AppParams params = {};
+    QString errorMsg;
+
+    if (!collect_calculate_params(params, errorMsg)) {
         QMessageBox::warning(this, "Calculation error", errorMsg);
         ui->lineEditMin->clear();
         ui->lineEditMax->clear();
         ui->lineEditMedian->clear();
+    } else {
+        doOperation(OPERATION_CALCULATE_METRICS, &context, &params);
+        if (context.status != STATUS_OK) {
+            QMessageBox::warning(this, "Calculation error", QString::fromUtf8(get_status_string(context.status)));
+            ui->lineEditMin->clear();
+            ui->lineEditMax->clear();
+            ui->lineEditMedian->clear();
+            return;
+        }
+
+        ui->lineEditMin->setText(QString::number(context.metrics.min, 'f', 3));
+        ui->lineEditMax->setText(QString::number(context.metrics.max, 'f', 3));
+        ui->lineEditMedian->setText(QString::number(context.metrics.median, 'f', 3));
+        update_graph_display();
+    }
+}
+
+void MainWindow::collect_unique_data(QSet<QString>& regions, QSet<int>& years) {
+    Iterator it = iterator_create(context.dataList);
+    while (iterator_has_next(&it)) {
+        DataRow* row = (DataRow*)iterator_get(&it);
+        if (row != nullptr) {
+            regions.insert(QString::fromUtf8(row->region));
+            years.insert(row->year);
+        }
+        iterator_next(&it);
     }
 }
 
@@ -157,16 +168,7 @@ void MainWindow::refresh_selectors() {
 
     QSet<QString> regions;
     QSet<int> years;
-
-    Iterator it = iterator_create(context.dataList);
-    while (iterator_has_next(&it)) {
-        DataRow* row = (DataRow*)iterator_get(&it);
-        if (row != nullptr) {
-            regions.insert(QString::fromUtf8(row->region));
-            years.insert(row->year);
-        }
-        iterator_next(&it);
-    }
+    collect_unique_data(regions, years);
 
     ui->comboBoxRegion->addItem("ALL REGIONS");
     QList<QString> sortedRegions = regions.values();

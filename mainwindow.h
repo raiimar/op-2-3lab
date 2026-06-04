@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "appcontext.h"
+#include "entrypoint.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,8 +31,10 @@ public:
     void resizeEvent(QResizeEvent* event) override;
     void update_graph_display();
     void on_buttonSelectFile_clicked();
+    int collect_calculate_params(AppParams& params, QString& errorMsg);
     void on_buttonLoadData_clicked();
     void on_buttonCalculateAndDraw_clicked();
+    void collect_unique_data(QSet<QString>& regions, QSet<int>& years);
     void refresh_selectors();
     void fill_table_by_region(const QString& region);
 

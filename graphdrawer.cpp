@@ -1,5 +1,7 @@
 #include "graphdrawer.h"
 #include "iterator.h"
+#include "data.h"
+#include "list.h"
 #include <QPainterPath>
 #include <cmath>
 

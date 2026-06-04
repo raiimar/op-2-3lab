@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+void insert_sorted(Node** sorted, Node* newNode, int columnIndex);
+void update_list_tail(List* list, Node* sorted);
+
 List* list_create() {
     List* list = (List*)malloc(sizeof(List));
     if (list != NULL) {
@@ -168,4 +171,29 @@ void sort_list_by_column(List* list, int columnIndex) {
 
     list->head = sorted;
     update_list_tail(list, sorted);
+}
+
+List* copy_list(List* source) {
+    List* result = NULL;
+    result = list_create();
+    if (result != NULL) {
+        Node* current = source->head;
+        int error = 0;
+        while (current != NULL && !error) {
+            DataRow* original = (DataRow*)current->data;
+            DataRow* copy = (DataRow*)malloc(sizeof(DataRow));
+            if (copy == NULL) {
+                error = 1;
+            } else {
+                *copy = *original;
+                list_push_back(result, copy);
+            }
+            current = current->next;
+        }
+        if (error) {
+            list_clear(result);
+            result = NULL;
+        }
+    }
+    return result;
 }
