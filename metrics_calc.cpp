@@ -14,8 +14,8 @@ List* prepare_filtered_data(AppContext* context, const AppParams* params) {
             context->plot.filteredData = filteredList;
             strncpy(context->plot.region, params->region, REGION_NAME_LENGTH - 1);
             context->plot.region[REGION_NAME_LENGTH - 1] = '\0';
-            context->plot.yearMin = ((DataRow*)filteredList->head->data)->year;
-            context->plot.yearMax = ((DataRow*)filteredList->tail->data)->year;
+            context->plot.yearMin = ((DataRow*)list_first(filteredList))->year;
+            context->plot.yearMax = ((DataRow*)list_last(filteredList))->year;
             context->plot.columnIndex = (DataColumnNumbers)params->columnIndex;
         } else {
             if (filteredList != NULL) {

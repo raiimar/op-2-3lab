@@ -1,5 +1,6 @@
 #include "list.h"
 #include "iterator.h"
+#include "data.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,22 +51,52 @@ void list_clear(List* list) {
     }
 }
 
+void* list_first(List* list) {
+    return (list && list->head) ? list->head->data : NULL;
+}
 
-int matches_filter(const DataRow* row, const char* region, int startYear, int endYear) {
+void* list_last(List* list) {
+    return (list && list->tail) ? list->tail->data : NULL;
+}
+
+double get_column_value(const void* row, int columnIndex) {
+    const DataRow* r = (const DataRow*)row;
+    double result = 0.0;
+    if (r != NULL) {
+        if (columnIndex == COLUMN_YEAR) {
+            result = (double)r->year;
+        } else if (columnIndex == COLUMN_NATURAL_POPULATION_GROWTH) {
+            result = r->natural_population_growth;
+        } else if (columnIndex == COLUMN_BIRTH_RATE) {
+            result = r->birth_rate;
+        } else if (columnIndex == COLUMN_DEATH_RATE) {
+            result = r->death_rate;
+        } else if (columnIndex == COLUMN_GENERAL_DEMOGRAPHIC_WEIGHT) {
+            result = r->general_demographic_weight;
+        } else if (columnIndex == COLUMN_URBANIZATION) {
+            result = r->urbanization;
+        }
+    }
+    return result;
+}
+
+int matches_filter(const void* row, const char* region, int startYear, int endYear) {
+    const DataRow* r = (const DataRow*)row;
     int result = 0;
-    if (row != NULL && row->year >= startYear && row->year <= endYear) {
-        if (strcmp(row->region, region) == 0) {
+    if (r != NULL && r->year >= startYear && r->year <= endYear) {
+        if (strcmp(r->region, region) == 0) {
             result = 1;
         }
     }
     return result;
 }
 
-int add_filtered_item(List* list, DataRow* row) {
+int add_filtered_item(List* list, void* row) {
     int result = 0;
+    DataRow* original = (DataRow*)row;
     DataRow* copy = (DataRow*)malloc(sizeof(DataRow));
     if (copy != NULL) {
-        *copy = *row;
+        *copy = *original;
         if (list_push_back(list, copy)) {
             result = 1;
         } else {
@@ -75,31 +106,11 @@ int add_filtered_item(List* list, DataRow* row) {
     return result;
 }
 
-double get_column_value(const DataRow* row, int columnIndex) {
-    double result = 0.0;
-    if (row != NULL) {
-        if (columnIndex == COLUMN_YEAR) {
-            result = (double)row->year;
-        } else if (columnIndex == COLUMN_NATURAL_POPULATION_GROWTH) {
-            result = row->natural_population_growth;
-        } else if (columnIndex == COLUMN_BIRTH_RATE) {
-            result = row->birth_rate;
-        } else if (columnIndex == COLUMN_DEATH_RATE) {
-            result = row->death_rate;
-        } else if (columnIndex == COLUMN_GENERAL_DEMOGRAPHIC_WEIGHT) {
-            result = row->general_demographic_weight;
-        } else if (columnIndex == COLUMN_URBANIZATION) {
-            result = row->urbanization;
-        }
-    }
-    return result;
-}
-
 int collect_filtered(List* result, List* list, const char* region, int startYear, int endYear) {
     int success = 1;
     Iterator it = iterator_create(list);
     while (iterator_has_next(&it) && success) {
-        DataRow* row = (DataRow*)iterator_get(&it);
+        void* row = iterator_get(&it);
         if (matches_filter(row, region, startYear, endYear)) {
             if (!add_filtered_item(result, row)) {
                 success = 0;
@@ -125,8 +136,8 @@ List* filter_to_list(List* list, const char* region, int startYear, int endYear)
 }
 
 void insert_sorted(Node** sorted, Node* newNode, int columnIndex) {
-    double newValue = get_column_value((DataRow*)newNode->data, columnIndex);
-    if (*sorted == NULL || get_column_value((DataRow*)(*sorted)->data, columnIndex) >= newValue) {
+    double newValue = get_column_value(newNode->data, columnIndex);
+    if (*sorted == NULL || get_column_value((*sorted)->data, columnIndex) >= newValue) {
         newNode->next = *sorted;
         if (*sorted != NULL) {
             (*sorted)->prev = newNode;
@@ -135,7 +146,7 @@ void insert_sorted(Node** sorted, Node* newNode, int columnIndex) {
         *sorted = newNode;
     } else {
         Node* p = *sorted;
-        while (p->next != NULL && get_column_value((DataRow*)p->next->data, columnIndex) < newValue) {
+        while (p->next != NULL && get_column_value(p->next->data, columnIndex) < newValue) {
             p = p->next;
         }
         newNode->next = p->next;
@@ -160,15 +171,14 @@ void update_list_tail(List* list, Node* sorted) {
 }
 
 void sort_list_by_column(List* list, int columnIndex) {
+    if (list == NULL) return;
     Node* sorted = NULL;
     Node* current = list->head;
-
     while (current != NULL) {
         Node* next = current->next;
         insert_sorted(&sorted, current, columnIndex);
         current = next;
     }
-
     list->head = sorted;
     update_list_tail(list, sorted);
 }
