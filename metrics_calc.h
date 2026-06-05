@@ -6,7 +6,7 @@
 #include "entrypoint.h"
 
 List* prepare_filtered_data(AppContext* context, const AppParams* params);
-void calc_metrics(List* list, int columnIndex, double* min, double* max, double* median);
+MetricsResult calc_metrics(List* list, int columnIndex);
 void logic_calculate_metrics(AppContext* context, const AppParams* params);
 
 #endif

@@ -39,6 +39,33 @@ MainWindow::MainWindow(QWidget *parent)
     };
 }
 
+const char* MainWindow::get_status_string(Status status){
+    const char* result = "Unknown error.";
+    switch (status) {
+    case STATUS_OK:
+        result = "Success";
+        break;
+    case ERROR_FILE_OPEN:
+        result = "Failed to open file.";
+        break;
+    case ERROR_FILE_READ:
+        result = "Failed to read header.";
+        break;
+    case ERROR_INVALID_DATA:
+        result = "Invalid data in file.";
+        break;
+    case ERROR_INVALID_PARAMS:
+        result = "Invalid parameters provided.";
+        break;
+    case ERROR_EMPTY_RESULT:
+        result = "No data for given region and years.";
+        break;
+    default:
+        break;
+    }
+    return result;
+}
+
 MainWindow::~MainWindow() {
     doOperation(OPERATION_CLEAR_DATA, &context, nullptr);
     delete ui;

@@ -28,7 +28,7 @@ List* prepare_filtered_data(AppContext* context, const AppParams* params) {
 }
 
 MetricsResult calc_metrics(List* list, int columnIndex) {
-    MetricsResult result = {0.0, 0.0, 0.0};
+    MetricsResult result = {0.0, 0.0, 0.0}; //
     Iterator it = iterator_create(list);
     DataRow* firstRow = (DataRow*)iterator_get(&it);
     result.min = result.max = get_column_value(firstRow, columnIndex);
@@ -48,7 +48,7 @@ MetricsResult calc_metrics(List* list, int columnIndex) {
 
     int target = (sorted->size - 1) / 2;
     Iterator sit = iterator_create(sorted);
-    for (int i = 0; i < target; ++i) {
+    for (int i = 0; i < target; ++i) { //
         iterator_next(&sit);
     }
     DataRow* midRow = (DataRow*)iterator_get(&sit);

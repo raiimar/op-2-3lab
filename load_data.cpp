@@ -41,7 +41,7 @@ void load_data(AppContext* context, const AppParams* params) {
     if (success) {
         filePath = params->filePath;
         clear_context_data(context);
-        context->dataList = list_create();
+        context->dataList = list_create(sizeof(DataRow));
         file = fopen(filePath, "r");
         if (file == NULL) {
             set_status_message(context, ERROR_FILE_OPEN);

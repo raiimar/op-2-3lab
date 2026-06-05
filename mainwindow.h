@@ -37,6 +37,7 @@ public:
     void collect_unique_data(QSet<QString>& regions, QSet<int>& years);
     void refresh_selectors();
     void fill_table_by_region(const QString& region);
+    const char* get_status_string(Status status);
 
 
 private:

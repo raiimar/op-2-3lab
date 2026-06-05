@@ -13,7 +13,7 @@ typedef enum {
     OPERATION_CLEAR_DATA
 } Operation;
 
-typedef struct {
+typedef struct { //
     char filePath[FILE_PATH_LENGHT];
     char region[REGION_NAME_LENGTH];
     int columnIndex;

@@ -7,11 +7,12 @@
 void insert_sorted(Node** sorted, Node* newNode, int columnIndex);
 void update_list_tail(List* list, Node* sorted);
 
-List* list_create() {
+List* list_create(size_t dataSize) {
     List* list = (List*)malloc(sizeof(List));
     if (list != NULL) {
         list->head = NULL;
         list->tail = NULL;
+        list->dataSize = dataSize;
         list->size = 0;
     }
     return list;
@@ -21,8 +22,10 @@ int list_push_back(List* list, void* data) {
     int result = 0;
     if (list != NULL && data != NULL) {
         Node* newNode = (Node*)malloc(sizeof(Node));
-        if (newNode != NULL) {
-            newNode->data = data;
+        if (newNode) {
+            newNode->data = malloc(list->dataSize);
+            if (newNode->data)
+                memcpy(newNode->data, data, list->dataSize);
             newNode->next = NULL;
             newNode->prev = list->tail;
             if (list->tail != NULL) {
@@ -63,18 +66,28 @@ double get_column_value(const void* row, int columnIndex) {
     const DataRow* r = (const DataRow*)row;
     double result = 0.0;
     if (r != NULL) {
-        if (columnIndex == COLUMN_YEAR) {
-            result = (double)r->year;
-        } else if (columnIndex == COLUMN_NATURAL_POPULATION_GROWTH) {
-            result = r->natural_population_growth;
-        } else if (columnIndex == COLUMN_BIRTH_RATE) {
-            result = r->birth_rate;
-        } else if (columnIndex == COLUMN_DEATH_RATE) {
-            result = r->death_rate;
-        } else if (columnIndex == COLUMN_GENERAL_DEMOGRAPHIC_WEIGHT) {
-            result = r->general_demographic_weight;
-        } else if (columnIndex == COLUMN_URBANIZATION) {
-            result = r->urbanization;
+        switch(columnIndex) {
+            case COLUMN_YEAR:
+                result = (double)r->year;
+                break;
+            case COLUMN_NATURAL_POPULATION_GROWTH:
+                result = r->natural_population_growth;
+                break;
+            case COLUMN_BIRTH_RATE:
+                result = r->birth_rate;
+                break;
+            case COLUMN_DEATH_RATE:
+                result = r->death_rate;
+                break;
+            case COLUMN_GENERAL_DEMOGRAPHIC_WEIGHT:
+                result = r->general_demographic_weight;
+                break;
+            case COLUMN_URBANIZATION:
+                result = r->urbanization;
+                break;
+            default:
+                result = 0.0;
+                break;
         }
     }
     return result;
@@ -106,27 +119,23 @@ int add_filtered_item(List* list, void* row) {
     return result;
 }
 
-int collect_filtered(List* result, List* list, const char* region, int startYear, int endYear) {
-    int success = 1;
-    Iterator it = iterator_create(list);
-    while (iterator_has_next(&it) && success) {
-        void* row = iterator_get(&it);
-        if (matches_filter(row, region, startYear, endYear)) {
-            if (!add_filtered_item(result, row)) {
-                success = 0;
-            }
-        }
-        iterator_next(&it);
-    }
-    return success;
-}
-
 List* filter_to_list(List* list, const char* region, int startYear, int endYear) {
     List* result = NULL;
     if (list != NULL && region != NULL) {
-        result = list_create();
+        result = list_create(list->dataSize);
         if (result != NULL) {
-            if (!collect_filtered(result, list, region, startYear, endYear)) {
+            Iterator it = iterator_create(list);
+            int error = 0;
+            while (iterator_has_next(&it) && !error) {
+                void* row = iterator_get(&it);
+                if (matches_filter(row, region, startYear, endYear)) {
+                    if(!list_push_back(result, row)){
+                        error = 1;
+                    }
+                }
+                iterator_next(&it);
+            }
+            if (error){
                 list_clear(result);
                 result = NULL;
             }
@@ -171,7 +180,8 @@ void update_list_tail(List* list, Node* sorted) {
 }
 
 void sort_list_by_column(List* list, int columnIndex) {
-    if (list == NULL) return;
+    if (list == NULL)
+        return;
     Node* sorted = NULL;
     Node* current = list->head;
     while (current != NULL) {
@@ -185,20 +195,16 @@ void sort_list_by_column(List* list, int columnIndex) {
 
 List* copy_list(List* source) {
     List* result = NULL;
-    result = list_create();
+    result = list_create(source->dataSize);
     if (result != NULL) {
-        Node* current = source->head;
+        Iterator it = iterator_create(source);
         int error = 0;
-        while (current != NULL && !error) {
-            DataRow* original = (DataRow*)current->data;
-            DataRow* copy = (DataRow*)malloc(sizeof(DataRow));
-            if (copy == NULL) {
-                error = 1;
+        while (iterator_has_next(&it) && !error) {
+            if(list_push_back(result, iterator_get(&it))) {
+                iterator_next(&it);
             } else {
-                *copy = *original;
-                list_push_back(result, copy);
+                error = 1;
             }
-            current = current->next;
         }
         if (error) {
             list_clear(result);
