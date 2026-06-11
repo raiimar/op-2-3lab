@@ -62,11 +62,11 @@ void* list_last(List* list) {
     return (list && list->tail) ? list->tail->data : NULL;
 }
 
-double get_column_value(const void* row, int columnIndex) {
+double get_column_value(const void* row, int index) {
     const DataRow* r = (const DataRow*)row;
     double result = 0.0;
     if (r != NULL) {
-        switch(columnIndex) {
+        switch(index) {
             case COLUMN_YEAR:
                 result = (double)r->year;
                 break;
@@ -93,49 +93,24 @@ double get_column_value(const void* row, int columnIndex) {
     return result;
 }
 
-int matches_filter(const void* row, const char* region, int startYear, int endYear) {
-    const DataRow* r = (const DataRow*)row;
-    int result = 0;
-    if (r != NULL && r->year >= startYear && r->year <= endYear) {
-        if (strcmp(r->region, region) == 0) {
-            result = 1;
-        }
-    }
-    return result;
-}
 
-int add_filtered_item(List* list, void* row) {
-    int result = 0;
-    DataRow* original = (DataRow*)row;
-    DataRow* copy = (DataRow*)malloc(sizeof(DataRow));
-    if (copy != NULL) {
-        *copy = *original;
-        if (list_push_back(list, copy)) {
-            result = 1;
-        } else {
-            free(copy);
-        }
-    }
-    return result;
-}
-
-List* filter_to_list(List* list, const char* region, int startYear, int endYear) {
+List* filter_to_list(List* list, int (*predicate)(const void*, const void*), const void* criterial) {
     List* result = NULL;
-    if (list != NULL && region != NULL) {
+    if (list != NULL && predicate != NULL) {
         result = list_create(list->dataSize);
         if (result != NULL) {
             Iterator it = iterator_create(list);
             int error = 0;
             while (iterator_has_next(&it) && !error) {
-                void* row = iterator_get(&it);
-                if (matches_filter(row, region, startYear, endYear)) {
-                    if(!list_push_back(result, row)){
+                void* element = iterator_get(&it);
+                if (predicate(element, criterial)) {
+                    if (!list_push_back(result, element)) {
                         error = 1;
                     }
                 }
                 iterator_next(&it);
             }
-            if (error){
+            if (error) {
                 list_clear(result);
                 result = NULL;
             }
@@ -143,7 +118,6 @@ List* filter_to_list(List* list, const char* region, int startYear, int endYear)
     }
     return result;
 }
-
 void insert_sorted(Node** sorted, Node* newNode, int columnIndex) {
     double newValue = get_column_value(newNode->data, columnIndex);
     if (*sorted == NULL || get_column_value((*sorted)->data, columnIndex) >= newValue) {
@@ -179,14 +153,14 @@ void update_list_tail(List* list, Node* sorted) {
     }
 }
 
-void sort_list_by_column(List* list, int columnIndex) {
+void sort_list_by_column(List* list, int index) {
     if (list == NULL)
         return;
     Node* sorted = NULL;
     Node* current = list->head;
     while (current != NULL) {
         Node* next = current->next;
-        insert_sorted(&sorted, current, columnIndex);
+        insert_sorted(&sorted, current, index);
         current = next;
     }
     list->head = sorted;

@@ -5,10 +5,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+int is_row_matching(const void* element, const void* criterial) {
+    const DataRow* row = (const DataRow*)element;
+    const FilterCriteria* criteria = (const FilterCriteria*)criterial;
+    int matches = (strcmp(criteria->region, row->region) == 0 &&
+                   row->year >= criteria->startYear &&
+                   row->year <= criteria->endYear);
+    return matches;
+}
+
 List* prepare_filtered_data(AppContext* context, const AppParams* params) {
     List* filteredList = NULL;
     if (params->startYear < params->endYear) {
-        filteredList = filter_to_list(context->dataList, params->region, params->startYear, params->endYear);
+        FilterCriteria criteria = {
+            .region = params->region,
+            .startYear = params->startYear,
+            .endYear = params->endYear
+        };
+
+        filteredList = filter_to_list(context->dataList, is_row_matching, &criteria);
         if (filteredList != NULL && filteredList->size > 0) {
             sort_list_by_column(filteredList, COLUMN_YEAR);
             context->plot.filteredData = filteredList;
@@ -28,7 +43,10 @@ List* prepare_filtered_data(AppContext* context, const AppParams* params) {
 }
 
 MetricsResult calc_metrics(List* list, int columnIndex) {
-    MetricsResult result = {0.0, 0.0, 0.0}; //
+    MetricsResult result;
+    result.min = 0.0;
+    result.max = 0.0;
+    result.median = 0.0;
     Iterator it = iterator_create(list);
     DataRow* firstRow = (DataRow*)iterator_get(&it);
     result.min = result.max = get_column_value(firstRow, columnIndex);
