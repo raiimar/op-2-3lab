@@ -5,33 +5,64 @@
 #include <stdlib.h>
 #include <string.h>
 
-int is_row_matching(const void* element, const void* criterial) {
-    const DataRow* row = (const DataRow*)element;
-    const FilterCriteria* criteria = (const FilterCriteria*)criterial;
-    int matches = (strcmp(criteria->region, row->region) == 0 &&
-                   row->year >= criteria->startYear &&
-                   row->year <= criteria->endYear);
+int is_region_matching(const DataRow* row, const FilterCriteria* criteria) {
+    int result = 0;
+    if (row != NULL && criteria != NULL) {
+        result = strcmp(criteria->region, row->region) == 0;
+    }
+    return result;
+}
+
+int is_start_year_matching(const DataRow* row, const FilterCriteria* criteria) {
+    int result = 0;
+    if (row != NULL && criteria != NULL) {
+        result = row->year >= criteria->startYear;
+    }
+    return result;
+}
+
+int is_end_year_matching(const DataRow* row, const FilterCriteria* criteria) {
+    int result = 0;
+    if (row != NULL && criteria != NULL) {
+        result = row->year <= criteria->endYear;
+    }
+    return result;
+}
+
+int is_row_matching(const void* filterData) {
+    const FilterPredicateData* data = (const FilterPredicateData*)filterData;
+    const DataRow* row = NULL;
+    const FilterCriteria* criteria = NULL;
+    int matches = 0;
+
+    if (data != NULL) {
+        row = (const DataRow*)data->element;
+        criteria = (const FilterCriteria*)data->criterial;
+        matches = is_region_matching(row, criteria) &&
+                  is_start_year_matching(row, criteria) &&
+                  is_end_year_matching(row, criteria);
+    }
     return matches;
 }
 
 List* prepare_filtered_data(AppContext* context, const AppParams* params) {
     List* filteredList = NULL;
-    if (params->startYear < params->endYear) {
+    if (params->calculateMetrics.startYear < params->calculateMetrics.endYear) {
         FilterCriteria criteria = {
-            .region = params->region,
-            .startYear = params->startYear,
-            .endYear = params->endYear
+            .region = params->calculateMetrics.region,
+            .startYear = params->calculateMetrics.startYear,
+            .endYear = params->calculateMetrics.endYear
         };
 
         filteredList = filter_to_list(context->dataList, is_row_matching, &criteria);
         if (filteredList != NULL && filteredList->size > 0) {
             sort_list_by_column(filteredList, COLUMN_YEAR);
             context->plot.filteredData = filteredList;
-            strncpy(context->plot.region, params->region, REGION_NAME_LENGTH - 1);
+            strncpy(context->plot.region, params->calculateMetrics.region, REGION_NAME_LENGTH - 1);
             context->plot.region[REGION_NAME_LENGTH - 1] = '\0';
             context->plot.yearMin = ((DataRow*)list_first(filteredList))->year;
             context->plot.yearMax = ((DataRow*)list_last(filteredList))->year;
-            context->plot.columnIndex = (DataColumnNumbers)params->columnIndex;
+            context->plot.columnIndex = (DataColumnNumbers)params->calculateMetrics.columnIndex;
         } else {
             if (filteredList != NULL) {
                 list_clear(filteredList);
@@ -64,9 +95,9 @@ MetricsResult calc_metrics(List* list, int columnIndex) {
     List* sorted = copy_list(list);
     sort_list_by_column(sorted, columnIndex);
 
-    int target = (sorted->size - 1) / 2;
+    int medianIndex = (sorted->size - 1) / 2;
     Iterator sit = iterator_create(sorted);
-    for (int i = 0; i < target; ++i) { //
+    for (int i = 0; i < medianIndex && iterator_has_next(&sit); ++i) {
         iterator_next(&sit);
     }
     DataRow* midRow = (DataRow*)iterator_get(&sit);
@@ -89,7 +120,7 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
     List* filteredList = NULL;
     int success = 1;
 
-    if (params->startYear >= params->endYear) {
+    if (params->calculateMetrics.startYear >= params->calculateMetrics.endYear) {
         set_status_message(context, ERROR_INVALID_PARAMS);
         success = 0;
     }
@@ -105,7 +136,7 @@ void logic_calculate_metrics(AppContext* context, const AppParams* params) {
     }
 
     if (success) {
-        MetricsResult res = calc_metrics(filteredList, params->columnIndex);
+        MetricsResult res = calc_metrics(filteredList, params->calculateMetrics.columnIndex);
         context->metrics = res;
         set_status_message(context, STATUS_OK);
     } else {

@@ -33,13 +33,13 @@ static void process_lines(AppContext* context, FILE* file) {
 void load_data(AppContext* context, const AppParams* params) {
     int success = 1;
     const char* filePath = NULL;
-    if (params == NULL || params->filePath[0] == '\0') {
+    if (params == NULL || params->loadData.filePath[0] == '\0') {
         set_status_message(context, ERROR_INVALID_PARAMS);
         success = 0;
     }
     FILE* file = NULL;
     if (success) {
-        filePath = params->filePath;
+        filePath = params->loadData.filePath;
         clear_context_data(context);
         context->dataList = list_create(sizeof(DataRow));
         file = fopen(filePath, "r");

@@ -67,34 +67,34 @@ double get_column_value(const void* row, int index) {
     double result = 0.0;
     if (r != NULL) {
         switch(index) {
-            case COLUMN_YEAR:
-                result = (double)r->year;
-                break;
-            case COLUMN_NATURAL_POPULATION_GROWTH:
-                result = r->natural_population_growth;
-                break;
-            case COLUMN_BIRTH_RATE:
-                result = r->birth_rate;
-                break;
-            case COLUMN_DEATH_RATE:
-                result = r->death_rate;
-                break;
-            case COLUMN_GENERAL_DEMOGRAPHIC_WEIGHT:
-                result = r->general_demographic_weight;
-                break;
-            case COLUMN_URBANIZATION:
-                result = r->urbanization;
-                break;
-            default:
-                result = 0.0;
-                break;
+        case COLUMN_YEAR:
+            result = (double)r->year;
+            break;
+        case COLUMN_NATURAL_POPULATION_GROWTH:
+            result = r->natural_population_growth;
+            break;
+        case COLUMN_BIRTH_RATE:
+            result = r->birth_rate;
+            break;
+        case COLUMN_DEATH_RATE:
+            result = r->death_rate;
+            break;
+        case COLUMN_GENERAL_DEMOGRAPHIC_WEIGHT:
+            result = r->general_demographic_weight;
+            break;
+        case COLUMN_URBANIZATION:
+            result = r->urbanization;
+            break;
+        default:
+            result = 0.0;
+            break;
         }
     }
     return result;
 }
 
 
-List* filter_to_list(List* list, int (*predicate)(const void*, const void*), const void* criterial) {
+List* filter_to_list(List* list, int (*predicate)(const void*), const void* criterial) {
     List* result = NULL;
     if (list != NULL && predicate != NULL) {
         result = list_create(list->dataSize);
@@ -103,7 +103,11 @@ List* filter_to_list(List* list, int (*predicate)(const void*, const void*), con
             int error = 0;
             while (iterator_has_next(&it) && !error) {
                 void* element = iterator_get(&it);
-                if (predicate(element, criterial)) {
+                FilterPredicateData predicateData = {
+                    .element = element,
+                    .criterial = criterial
+                };
+                if (predicate(&predicateData)) {
                     if (!list_push_back(result, element)) {
                         error = 1;
                     }

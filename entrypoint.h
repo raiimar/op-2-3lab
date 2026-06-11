@@ -15,10 +15,20 @@ typedef enum {
 
 typedef struct {
     char filePath[FILE_PATH_LENGHT];
+} LoadDataParams;
+
+typedef struct {
     char region[REGION_NAME_LENGTH];
     int columnIndex;
     int startYear;
     int endYear;
+} CalculateMetricsParams;
+
+typedef struct {
+    union {
+        LoadDataParams loadData;
+        CalculateMetricsParams calculateMetrics;
+    };
 } AppParams;
 
 void doOperation(Operation operation, AppContext* context, AppParams* params);

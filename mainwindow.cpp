@@ -108,8 +108,8 @@ void MainWindow::on_buttonLoadData_clicked() {
     }
 
     AppParams params = {};
-    std::strncpy(params.filePath, filePath.toUtf8().constData(), sizeof(params.filePath) - 1);
-    params.filePath[sizeof(params.filePath) - 1] = '\0';
+    std::strncpy(params.loadData.filePath, filePath.toUtf8().constData(), sizeof(params.loadData.filePath) - 1);
+    params.loadData.filePath[sizeof(params.loadData.filePath) - 1] = '\0';
 
     doOperation(OPERATION_LOAD_DATA, &context, &params);
 
@@ -140,11 +140,11 @@ int MainWindow::collect_calculate_params(AppParams& params, QString& errorMsg) {
             errorMsg = "Start year cannot be greater than end year.";
             success = 0;
         } else {
-            params.columnIndex = ui->comboBoxColumn->currentData().toInt();
-            params.startYear = startYear;
-            params.endYear = endYear;
-            strncpy(params.region, regionName.toUtf8().constData(), sizeof(params.region) - 1);
-            params.region[sizeof(params.region) - 1] = '\0';
+            params.calculateMetrics.columnIndex = ui->comboBoxColumn->currentData().toInt();
+            params.calculateMetrics.startYear = startYear;
+            params.calculateMetrics.endYear = endYear;
+            strncpy(params.calculateMetrics.region, regionName.toUtf8().constData(), sizeof(params.calculateMetrics.region) - 1);
+            params.calculateMetrics.region[sizeof(params.calculateMetrics.region) - 1] = '\0';
         }
     }
     return success;
